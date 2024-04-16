@@ -11,7 +11,10 @@ const { database } = require('./config/database');
 
 // NEED CRON TO MAKE SCHEDULE AUTOMATICALY DAILY FETCH
 const cronGeneratorSchedule = require('./functions/cronGeneratorSchedule');
+const cronCheckDelayStatus = require('./functions/cronCheckDelayStatus');
 cronGeneratorSchedule()
+cronCheckDelayStatus()
+
 
 database.connect()
 console.log('DB Connecttion:');

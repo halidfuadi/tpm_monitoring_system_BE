@@ -13,8 +13,6 @@ async function uuidToId(table, col, uuid) {
 module.exports = {
     getData: async(req, res) => {
         try {
-            let itemcheck_id = await uuidToId(table.tb_m_itemchecks, 'itemcheck_id', req.query.itemcheck_id)
-            req.query.itemcheck_id = itemcheck_id
             let containerFilter = await queryHandler(req.query)
             containerFilter.length > 0 ? containerFilter = 'WHERE ' + containerFilter.join(" AND ") : containerFilter = ""
             let itemcheckStd = await queryGET(table.tb_m_itemcheck_std, containerFilter, ['uuid as itemcheck_std_id, ok_val, ng_val, is_number'])

@@ -27,7 +27,7 @@ module.exports = {
             */
             let containerFilter = queryHandler(req.query)
             containerFilter.length > 0 ? containerFilter = containerFilter.join(" AND ") : containerFilter = ""
-            let schedulesData = await queryGET(table.v_schedules_monthly, `WHERE ${containerFilter}`)
+            let schedulesData = await queryGET(table.v_schedules_monthly, `WHERE ${containerFilter} ORDER BY created_dt`)
             let mapSchedulesPics = await schedulesData.map(async schedule => {
                 let schedule_id = await uuidToId(table.tb_r_schedules, 'schedule_id', schedule.schedule_id) //table, col, uuid
                 let q = `SELECT 
