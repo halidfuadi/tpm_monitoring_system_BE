@@ -1,6 +1,6 @@
 var express = require('express');
-const { inchargeTpm, inchargeTpmOpt, machineTpmOpt, lineTpmOpt } = require('../../helpers/filterHelper.controller');
-var router = express.Router();inchargeTpm
+const { inchargeTpmOpt, machineTpmOpt, lineTpmOpt } = require('../../helpers/filterHelper.controller');
+var router = express.Router();
 
 
 router.post('/incharge', inchargeTpmOpt)
