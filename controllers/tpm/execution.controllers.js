@@ -80,7 +80,7 @@ async function execFinding(res, data) {
         }
 
         await queryPOST(table.tb_r_finding_checks, objFinding)
-        await queryPUT(table.tb_m_itemchecks, updtItemcheckLastDt, `WHERE itemcheck_id = ${itemcheck_id}`)
+        await queryPUT(table.tb_r_ledger_itemchecks, updtItemcheckLastDt, `WHERE itemcheck_id = ${itemcheck_id}`)
         return response.success(res, 'Success to execution schedule check')
     } catch (error) {
         console.log(error);
@@ -97,7 +97,7 @@ async function execNormal(res, data) {
         delete data.finding
         const lastIdHistoryExec = await getLastIdData(table.tb_r_history_checks, 'history_check_id')
         const schedule_id = await uuidToId(table.tb_r_schedules, `schedule_id`, data.schedule_id)
-        const itemcheck_id = await uuidToId(table.tb_m_itemchecks, `itemcheck_id`, data.itemcheck_id)
+        const ledger_itemcheck_id = await uuidToId(table.tb_r_ledger_itemchecks, `ledger_itemcheck_id`, data.ledger_itemcheck_id)
 
         // Start: Map User Id Converted
         const actual_user_ids = await data.actual_user_ids.map(async(act_user_id, i) => {
@@ -129,10 +129,13 @@ async function execNormal(res, data) {
         const updtItemcheckLastDt = {
             last_check_dt: data.actual_check_dt
         }
+        console.log('updtItemcheckLastDt');
+        console.log(updtItemcheckLastDt);
+        console.log(ledger_itemcheck_id);
 
         await queryPUT(table.tb_r_schedules, objSchedule, `WHERE schedule_id = ${schedule_id}`)
         await queryPOST(table.tb_r_history_checks, objCheckedExec)
-        await queryPUT(table.tb_m_itemchecks, updtItemcheckLastDt, `WHERE itemcheck_id = ${itemcheck_id}`)
+        await queryPUT(table.tb_r_ledger_itemchecks, updtItemcheckLastDt, `WHERE ledger_itemcheck_id = ${ledger_itemcheck_id}`)
         return response.success(res, 'Success to execution schedule check')
     } catch (error) {
         console.log(error);

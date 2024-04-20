@@ -85,7 +85,7 @@ module.exports = {
                 containerColumn.push(key)
             }
             let q = `INSERT INTO ${table} (${containerColumn.join(',')}) VALUES ${mapBulkData.join(',')} RETURNING *`
-            console.log(q);
+            // console.log(q);
             await database.query(q)
                 .then((result) => {
                     resolve(result)
@@ -103,7 +103,7 @@ module.exports = {
             }
 
             let q = `UPDATE ${table} SET ${containerSetValues.join(',')} ${whereCond} RETURNING *`
-            console.log(q);
+            // console.log(q);
             await database.query(q)
                 .then((result) => {
                     resolve(result)
@@ -126,7 +126,7 @@ module.exports = {
     queryCustom: async(sql) => {
         return new Promise(async(resolve, reject) => {
             let q = sql
-            console.log(q);
+            // console.log(q);
             await database.query(q)
                 .then((result) => {
                     resolve(result)
