@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const schedules = require('./schedules.route')
+const ledgers = require('./ledgers.route')
 const statusTpm = require('./statusTpm.route')
 const execution = require('./execution.route')
 const findings = require('./findings.route')
@@ -11,6 +12,7 @@ const itemcheck = require('./itemcheck.route')
 const users = require('./users')
 
 router.use('/schedules', schedules)
+router.use('/ledgers', ledgers)
 router.use('/execution', execution)
 router.use('/findings', findings)
 router.use('/status', statusTpm)

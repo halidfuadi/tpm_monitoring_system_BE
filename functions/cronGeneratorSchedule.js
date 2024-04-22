@@ -42,6 +42,7 @@ async function cronGeneratorSchedule() {
                     status_id: 0,
                     created_by: 'GENERATOR'
                 }
+
                 const resp = await queryPOST(table.tb_r_schedules, newSchedule)
                 console.log('DATA INSERTED');
                 successCreatedCount += 1
