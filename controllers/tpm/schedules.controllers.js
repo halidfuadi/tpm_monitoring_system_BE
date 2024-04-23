@@ -17,7 +17,7 @@ async function uuidToId(table, col, uuid) {
 
 
 module.exports = {
-    getSchedule: async(req, res) => {
+    getSchedule: async (req, res) => {
         try {
             /*
                 DATA MAP:
@@ -47,13 +47,47 @@ module.exports = {
             const waitMapSchedule = await Promise.all(mapSchedulesPics)
             let keyGroup = req.query.schedule_id ? 'schedule_id' : 'ledger_itemcheck_id'
             const groupByItemcheck = await groupFunction(waitMapSchedule, keyGroup)
-            response.success(res, "success to get schedules", groupByItemcheck)
+            response.success(res, "success to get today activities", groupByItemcheck)
+        } catch (error) {
+            console.log(error);
+            response.failed(res, 'Error to get today activities')
+        }
+    },
+
+    // Disini nanti untuk today activities
+    getTodayActivities: async (req, res) => {
+        try {
+            /*
+                DATA MAP:
+                1. GET SCHEDULES ALL BASED ON FILTER optional CURRENT DATE, LINE, STATUS
+            */
+            let containerFilter = queryHandler(req.query)
+            containerFilter.length > 0 ? containerFilter = containerFilter.join(" AND ") : containerFilter = ""
+            let schedulesData = await queryGET(table.v_schedules_monthly, `WHERE ${containerFilter} ORDER BY day_idx`)
+            let mapSchedulesPics = await schedulesData.map(async schedule => {
+                let schedule_id = await uuidToId(table.tb_r_schedules, 'schedule_id', schedule.schedule_id) //table, col, uuid
+                let q = `SELECT 
+                trsc.uuid as schedule_checker_id,
+                tmu.uuid as user_id,
+                tmu.user_nm,
+                tmu.noreg
+                FROM tb_r_schedule_checker trsc
+                JOIN tb_m_users tmu ON tmu.user_id = trsc.user_id
+                WHERE trsc.schedule_id = ${schedule_id}`
+                let checkers = await queryCustom(q)
+                let dateOffset = new Date(((schedule.val_periodic * schedule.prec_val) * timestampDay)).getTime() + new Date(schedule.actual_check_dt ? schedule.actual_check_dt : schedule.plan_check_dt).getTime()
+                schedule.next_check = new Date(dateOffset)
+                schedule.checkers = checkers.rows
+                return schedule
+            })
+            const waitMapSchedule = await Promise.all(mapSchedulesPics)
+            response.success(res, "success to get schedules", waitMapSchedule)
         } catch (error) {
             console.log(error);
             response.failed(res, 'Error to get schedules')
         }
     },
-    addPlanPic: async(req, res) => {
+    addPlanPic: async (req, res) => {
         // Assign PIC convert UUID to ID
         // tb_r_schedule_checker (user_id, schedule_id)
         try {
@@ -72,12 +106,34 @@ module.exports = {
                 }
                 containerArr.push(objUser)
             }
+            console.log('Disini');
             console.log(containerArr);
             let instRes = await queryBulkPOST(table.tb_r_schedule_checker, containerArr)
             response.success(res, "success to add pic", instRes)
         } catch (error) {
             console.log(error);
             response.failed(res, 'Error to add pic')
+        }
+    },
+    editPlanDate: async (req, res) => {
+        // Edit Plan Date
+        //Update convert uuid to id schedule
+        //Update table
+        //tb_r_schedules plan_check_dt
+        try {
+            let { plan_check_dts, schedule_id } = req.body
+            let scheduleId = await uuidToId(table.tb_r_schedules, 'schedule_id', schedule_id)
+
+            let q = `update tb_r_schedules 
+                set plan_check_dt = '${plan_check_dts}'
+                WHERE schedule_id = ${scheduleId}`
+            let update = await queryCustom(q)
+            let updateObj = update.rows
+            console.log(q);
+            response.success(res, "success to edit plan date", q)
+        } catch (error) {
+            console.log(error);
+            response.failed(res, 'Error to edit plan date')
         }
     }
 }

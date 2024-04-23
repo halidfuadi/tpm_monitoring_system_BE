@@ -7,6 +7,10 @@ function queryHandler(query) {
         } else if (key == 'yearonly') {
             key = `EXTRACT('year' from plan_check_dt)=${+query['yearonly']}`
             containerFilter.push(`${key}`)
+        } else if (key == 'date') {
+            const dateParts = query['date'].split('-')
+            const formattedDate = `${dateParts[0]}-${dateParts[1]}-${dateParts[2]}`
+            containerFilter.push(`EXTRACT('year' from plan_check_dt)=${dateParts[0]} AND EXTRACT(month from plan_check_dt)=${dateParts[1]} AND EXTRACT(day from plan_check_dt)=${dateParts[2]}`)
         }
     }
     delete query.month
