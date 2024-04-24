@@ -17,7 +17,7 @@ async function uuidToId(table, col, uuid) {
 
 
 module.exports = {
-    getSchedule: async (req, res) => {
+    getSchedule: async(req, res) => {
         try {
             /*
                 DATA MAP:
@@ -55,13 +55,13 @@ module.exports = {
     },
 
     // Disini nanti untuk today activities
-    getTodayActivities: async (req, res) => {
+    getTodayActivities: async(req, res) => {
         try {
             /*
                 DATA MAP:
                 1. GET SCHEDULES ALL BASED ON FILTER optional CURRENT DATE, LINE, STATUS
             */
-            let containerFilter = queryHandler(req.query)
+            let containerFilter = queryHandler(req.body)
             containerFilter.length > 0 ? containerFilter = containerFilter.join(" AND ") : containerFilter = ""
             let schedulesData = await queryGET(table.v_schedules_monthly, `WHERE ${containerFilter} ORDER BY day_idx`)
             let mapSchedulesPics = await schedulesData.map(async schedule => {
@@ -87,7 +87,7 @@ module.exports = {
             response.failed(res, 'Error to get schedules')
         }
     },
-    addPlanPic: async (req, res) => {
+    addPlanPic: async(req, res) => {
         // Assign PIC convert UUID to ID
         // tb_r_schedule_checker (user_id, schedule_id)
         try {
@@ -115,7 +115,7 @@ module.exports = {
             response.failed(res, 'Error to add pic')
         }
     },
-    editPlanDate: async (req, res) => {
+    editPlanDate: async(req, res) => {
         // Edit Plan Date
         //Update convert uuid to id schedule
         //Update table

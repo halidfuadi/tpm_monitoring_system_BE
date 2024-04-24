@@ -19,8 +19,7 @@ function queryHandler(query) {
     delete query.date
     for (const key in query) {
         let value = query[key]
-        console.log(value);
-        if (value !== 'null' && value) containerFilter.push(`${key} = '${value}'`)
+        if (value !== 'null' && value && value != -1) containerFilter.push(`${key} = '${value}'`)
         if (value == '0') containerFilter.push(`${key} = '${value}'`)
     }
     return containerFilter

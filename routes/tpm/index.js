@@ -11,6 +11,13 @@ const itemcheckStd_master = require('./itemcheckStd_master.route')
 const itemcheck = require('./itemcheck.route')
 const users = require('./users')
 
+const lines = require('./lines.route')
+router.use('/lines', lines)
+
+const status = require('./status.route')
+router.use('/status', status)
+
+
 router.use('/schedules', schedules)
 router.use('/ledgers', ledgers)
 router.use('/execution', execution)
