@@ -179,7 +179,7 @@ module.exports = {
             waitMapSchedule.forEach(schedule => {
                 series[0].data.push(schedule.actual_duration ?? 0);
                 series[1].data.push(schedule.plan_duration);
-                labels.push(schedule.itemcheck_nm);
+                labels.push(schedule.itemcheck_nm.slice(0,10));
                 // console.log(schedule);
             });
 
