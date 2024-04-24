@@ -1,4 +1,8 @@
 function queryHandler(query) {
+    const keyExists = Object.keys(query).length > 0
+    if(!keyExists) {
+        return ''
+    }
     let containerFilter = []
     for (let key in query) {
         if (key == 'month') {
