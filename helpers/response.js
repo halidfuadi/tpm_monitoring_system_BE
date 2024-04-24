@@ -1,11 +1,11 @@
 const notAllowed = (res, message) => {
     let response = {
-            status: 401,
-            message: message
-        }
+        status: 401,
+        message: message
+    }
     res.status(401).json(response)
 }
-const success = (res, message, data) => {
+const success = (res, message = 'Success', data) => {
     let response = {
             status: 200,
             message: message,

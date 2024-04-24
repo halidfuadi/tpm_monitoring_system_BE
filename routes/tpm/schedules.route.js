@@ -3,7 +3,7 @@ const schedulesControllers = require('../../controllers/tpm/schedules.controller
 var router = express.Router();
 
 router.get('/search', schedulesControllers.getSchedule)
-router.get('/today-activities', schedulesControllers.getTodayActivities)
+router.post('/today-activities', schedulesControllers.getTodayActivities)
 router.post('/add/pic', schedulesControllers.addPlanPic)
 router.post('/edit/plandate', schedulesControllers.editPlanDate)
 
