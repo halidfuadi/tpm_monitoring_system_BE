@@ -1,8 +1,9 @@
 var express = require('express');
-const { getLedgers } = require('../../controllers/tpm/ledgers.controllers');
+const { getLedgers, getDetail } = require('../../controllers/tpm/ledgers.controllers');
 var router = express.Router();
 
-router.get('/get', getLedgers)
+router.get('/search', getLedgers)
+router.get('/detail?:id', getDetail)
 
 
 module.exports = router

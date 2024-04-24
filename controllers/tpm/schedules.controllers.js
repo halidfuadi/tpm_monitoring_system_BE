@@ -26,6 +26,7 @@ module.exports = {
                 3. GET pic from tb_r_schedule_checker schedule_id
             */
             let containerFilter = queryHandler(req.query)
+            
             containerFilter.length > 0 ? containerFilter = containerFilter.join(" AND ") : containerFilter = ""
             let schedulesData = await queryGET(table.v_schedules_monthly, `WHERE ${containerFilter} ORDER BY day_idx`)
             let mapSchedulesPics = await schedulesData.map(async schedule => {
@@ -37,7 +38,7 @@ module.exports = {
                 tmu.noreg
                 FROM tb_r_schedule_checker trsc
                 JOIN tb_m_users tmu ON tmu.user_id = trsc.user_id
-                WHERE trsc.schedule_id = ${schedule_id}`
+                WHERE trsc.schedule_id = ${schedule_id}`                
                 let checkers = await queryCustom(q)
                 let dateOffset = new Date(((schedule.val_periodic * schedule.prec_val) * timestampDay)).getTime() + new Date(schedule.actual_check_dt ? schedule.actual_check_dt : schedule.plan_check_dt).getTime()
                 schedule.next_check = new Date(dateOffset)
