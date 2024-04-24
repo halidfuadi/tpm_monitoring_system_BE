@@ -16,7 +16,7 @@ async function uuidToId(table, col, uuid) {
 
 
 module.exports = {
-    getLedgers: async (req, res) => {
+    getLedgers: async(req, res) => {
         try {
             let containerFilter = queryHandler(req.query)
             containerFilter.length > 0 ? containerFilter = containerFilter.join(" AND ") : containerFilter = ""
@@ -51,7 +51,7 @@ module.exports = {
         }
     },
 
-    getDetail: async (req, res) => {
+    getDetail: async(req, res) => {
         try {
             let idLedger = Number(req.query.ledger_id);
             let q = `
@@ -85,6 +85,7 @@ module.exports = {
             join tb_m_itemcheck_std tmis on tmi.itemcheck_std_id = tmis.itemcheck_std_id 
             Where trli.ledger_id = ${idLedger}
         `
+            console.log(q);
             let detailsIc = (await queryCustom(q)).rows;
             response.success(res, 'Success to get ItemChecks', detailsIc)
 
@@ -93,7 +94,7 @@ module.exports = {
             response.failed(res, 'Error to get schedules')
         }
     },
-    addItemCheck: async (req, res) => {
+    addItemCheck: async(req, res) => {
         try {
 
             queryPOST(table.tb_m_itemchecks, req.body)
@@ -104,7 +105,7 @@ module.exports = {
             response.failed(res, 'Error to add data')
         }
     },
-    editItemCheck: async (req, res) => {
+    editItemCheck: async(req, res) => {
         try {
             let idToEdit = Number(req.query.itemcheck_id) //pastikan item check id adalah number 
             let update = req.body //isi dari apa apa yang akan di ubah
@@ -117,7 +118,7 @@ module.exports = {
             response.failed(res, 'Error to Edit data')
         }
     },
-    deleteItemCheck: async (req, res) => {
+    deleteItemCheck: async(req, res) => {
         try {
 
             let idToDelete = Number(req.query.itemcheck_id) //pastikan item check id adalah number 

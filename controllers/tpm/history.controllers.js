@@ -15,7 +15,7 @@ module.exports = {
         try {
             let containerFilter = queryHandler(req.query)
             containerFilter.length > 0 ? containerFilter = 'WHERE ' + containerFilter.join(" AND ") : containerFilter = ""
-            const historyData = await queryGET(table.v_tpm_history, containerFilter)
+            const historyData = await queryGET(table.v_tpm_history, containerFilter + ' ORDER BY plan_check_dt DESC')
             response.success(res, 'success to get history', historyData)
         } catch (error) {
             console.log(error);

@@ -12,9 +12,10 @@ async function cronCheckDelayStatus() {
     for (let index = 0; index < itemchecks.length; index++) {
         const element = itemchecks[index];
         // console.log(element);
-        let timePlan = new Date(element.plan_check_dt).getTime()
+        let timePlan = new Date(element.plan_check_dt).getTime() + 7 * 60 * 60 * 1000
         let currentTime = new Date().getTime()
-        const isDelay = (timePlan - currentTime) + (23 * 60 * 60 * 1000) < 0 && !element.actual_check_dt
+
+        const isDelay = (timePlan - currentTime) < 0 && !element.actual_check_dt
         const schedule_id = element.schedule_id
         const findingData = await queryGET(table.v_tpm_findings, `WHERE schedule_id = '${schedule_id}'`)
         const is_any_finding = findingData.length > 0
