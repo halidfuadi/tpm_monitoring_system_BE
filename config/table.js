@@ -23,7 +23,9 @@ const table = {
     v_schedules_monthly: 'v_schedules_monthly',
     v_tpm_findings: 'v_tpm_findings',
     tb_r_finding_checks: 'tb_r_finding_checks',
-    v_tpm_history: 'v_tpm_history'
+    v_tpm_history: 'v_tpm_history',
+    tb_m_spareparts: 'tb_m_spareparts',
+    tb_m_itemcheck_spareparts: 'tb_m_itemcheck_spareparts'
 }
 
 
