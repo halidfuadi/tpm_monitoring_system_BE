@@ -17,7 +17,7 @@ async function uuidToId(table, col, uuid) {
 
 
 module.exports = {
-    getSchedule: async(req, res) => {
+    getSchedule: async (req, res) => {
         try {
             /*
                 DATA MAP:
@@ -55,8 +55,7 @@ module.exports = {
         }
     },
 
-    // Disini nanti untuk today activities
-    getTodayActivities: async(req, res) => {
+    getTodayActivities: async (req, res) => {
         try {
             /*
                 DATA MAP:
@@ -83,13 +82,13 @@ module.exports = {
                 return schedule
             })
             const waitMapSchedule = await Promise.all(mapSchedulesPics)
-            response.success(res, "success to get schedules", waitMapSchedule)
+            response.success(res, "success to get today activities", waitMapSchedule)
         } catch (error) {
             console.log(error);
-            response.failed(res, 'Error to get schedules')
+            response.failed(res, 'Error to get today activities')
         }
     },
-    addPlanPic: async(req, res) => {
+    addPlanPic: async (req, res) => {
         // Assign PIC convert UUID to ID
         // tb_r_schedule_checker (user_id, schedule_id)
         try {
@@ -117,7 +116,7 @@ module.exports = {
             response.failed(res, 'Error to add pic')
         }
     },
-    editPlanDate: async(req, res) => {
+    editPlanDate: async (req, res) => {
         // Edit Plan Date
         //Update convert uuid to id schedule
         //Update table
@@ -137,5 +136,65 @@ module.exports = {
             console.log(error);
             response.failed(res, 'Error to edit plan date')
         }
-    }
+    },
+    getVisualize: async (req, res) => {
+        try {
+            /*
+                DATA MAP:
+                1. GET SCHEDULES ALL BASED ON FILTER optional LINE, MONTH, MACHINE
+                2. MAP DATA INTO SERIES AND LABEL
+                3. SERIES CONTAINS DATA STANDARD AND ACTUAL AND LABEL CONTAINS ITEM CHECK
+            */
+
+            console.log(req.body);
+            let containerFilter = queryHandler(req.body);
+            containerFilter.length > 0 ? containerFilter = containerFilter.join(" AND ") : containerFilter = "";
+            let schedulesData = await queryGET(table.v_schedules_monthly, `WHERE ${containerFilter} ORDER BY day_idx`);
+            let mapScheduleVisualize = await schedulesData.map(async schedule => {
+                let schedule_id = await uuidToId(table.tb_r_schedules, 'schedule_id', schedule.schedule_id); //table, col, uuid
+                // Add plan_duration and actual_duration columns from tb_r_schedules table
+                let scheduleData = await queryGET(table.tb_r_schedules, `WHERE schedule_id = ${schedule_id}`);
+                if (scheduleData.length > 0) {
+                    schedule.plan_duration = scheduleData[0].plan_duration;
+                    schedule.actual_duration = scheduleData[0].actual_duration;
+                } else {
+                    schedule.plan_duration = null;
+                    schedule.actual_duration = null;
+                }
+                return schedule;
+            });
+            const waitMapSchedule = await Promise.all(mapScheduleVisualize);
+
+            let series = [{
+                name: "actual duration",
+                type: "column",
+                data: [],
+            }, {
+                name: "plan duration",
+                type: "column",
+                data: [],
+            }];
+            let labels = [];
+
+            waitMapSchedule.forEach(schedule => {
+                series[0].data.push(schedule.actual_duration ?? 0);
+                series[1].data.push(schedule.plan_duration);
+                labels.push(schedule.itemcheck_nm);
+                console.log(schedule);
+            });
+
+            const visualizeData = {
+                series,
+                labels
+            };
+
+
+            response.success(res, "success to get visualization of item check", visualizeData);
+
+
+        } catch (error) {
+            console.log(error);
+            response.failed(res, 'Error to get visualization of item check')
+        }
+    },
 }
