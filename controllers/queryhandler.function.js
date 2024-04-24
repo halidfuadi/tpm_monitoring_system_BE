@@ -1,7 +1,7 @@
 function queryHandler(query) {
     const keyExists = Object.keys(query).length > 0
-    if(!keyExists) {
-        return ''
+    if (!keyExists) {
+        return []
     }
     let containerFilter = []
     for (let key in query) {
@@ -12,9 +12,8 @@ function queryHandler(query) {
             key = `EXTRACT('year' from plan_check_dt)=${+query['yearonly']}`
             containerFilter.push(`${key}`)
         } else if (key == 'date') {
-            const dateParts = query['date'].split('-')
-            const formattedDate = `${dateParts[0]}-${dateParts[1]}-${dateParts[2]}`
-            containerFilter.push(`EXTRACT('year' from plan_check_dt)=${dateParts[0]} AND EXTRACT(month from plan_check_dt)=${dateParts[1]} AND EXTRACT(day from plan_check_dt)=${dateParts[2]}`)
+            key = `plan_check_dt = '${query['date']}'`
+            containerFilter.push(`${key}`)
         }
     }
     delete query.month

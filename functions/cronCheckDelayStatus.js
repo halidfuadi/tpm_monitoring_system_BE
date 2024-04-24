@@ -14,7 +14,7 @@ async function cronCheckDelayStatus() {
         console.log(element);
         let timePlan = new Date(element.plan_check_dt).getTime()
         let currentTime = new Date().getTime()
-        const isDelay = timePlan - currentTime < 0 && !element.actual_check_dt
+        const isDelay = (timePlan - currentTime) + (23 * 60 * 60 * 1000) < 0 && !element.actual_check_dt
         const schedule_id = element.schedule_id
         const findingData = await queryGET(table.v_tpm_findings, `WHERE schedule_id = '${schedule_id}'`)
         const is_any_finding = findingData.length > 0
@@ -29,6 +29,8 @@ async function cronCheckDelayStatus() {
             await queryPUT(table.tb_r_schedules, { status_id: 4 }, `WHERE uuid = '${schedule_id}'`)
         } else if (is_any_finding) {
             await queryPUT(table.tb_r_schedules, { status_id: 2 }, `WHERE uuid = '${schedule_id}'`)
+        } else {
+            await queryPUT(table.tb_r_schedules, { status_id: 0 }, `WHERE uuid = '${schedule_id}'`)
         }
     }
 }

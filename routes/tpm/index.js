@@ -22,7 +22,7 @@ router.use('/schedules', schedules)
 router.use('/ledgers', ledgers)
 router.use('/execution', execution)
 router.use('/findings', findings)
-router.use('/status', statusTpm)
+router.use('/statusTpm', statusTpm)
 router.use('/filter', filter)
 router.use('/history', history)
 
