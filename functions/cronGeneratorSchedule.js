@@ -19,7 +19,7 @@ async function cronGeneratorSchedule() {
     let itemchecks = await queryGET(table.v_generator_itemchecks, ` WHERE deleted_dt IS NULL AND period_nm <> 'DAY'`)
     let successCreatedCount = 0
     let mapItemCheck = await itemchecks.map(async(itemcheck, i) => {
-        console.log(itemcheck);
+        // console.log(itemcheck);
         const timemilisecOffset = 1000 * 60 * 60 * 24
         const forecaseSubsOneMonth = timemilisecOffset * 30 // for advance generator one month before
         let offsettime = new Date(itemcheck.last_check_dt).getTime() + (timemilisecOffset * +itemcheck.val_periodic * +itemcheck.prec_val)
@@ -45,6 +45,7 @@ async function cronGeneratorSchedule() {
 
                 const resp = await queryPOST(table.tb_r_schedules, newSchedule)
                 console.log('DATA INSERTED');
+
                 successCreatedCount += 1
                 return successCreatedCount
             }

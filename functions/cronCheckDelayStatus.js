@@ -8,10 +8,10 @@ async function cronCheckDelayStatus() {
     const year = new Date().getFullYear()
     let itemchecks = await queryGET(table.v_schedules_monthly, ` WHERE deleted_dt IS NULL AND period_nm <> 'DAY' AND EXTRACT(MONTH FROM plan_check_dt) = ${month}
     AND EXTRACT(YEAR FROM plan_check_dt) = ${year};`)
-    console.log(itemchecks);
+        // console.log(itemchecks);
     for (let index = 0; index < itemchecks.length; index++) {
         const element = itemchecks[index];
-        console.log(element);
+        // console.log(element);
         let timePlan = new Date(element.plan_check_dt).getTime()
         let currentTime = new Date().getTime()
         const isDelay = (timePlan - currentTime) + (23 * 60 * 60 * 1000) < 0 && !element.actual_check_dt
