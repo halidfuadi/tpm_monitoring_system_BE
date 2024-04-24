@@ -1,8 +1,9 @@
 const { database } = require('../config/database')
+const moment = require('moment')
 
 module.exports = {
-    queryGET: async(table, whereCond = false, cols = null, limit = null, ) => {
-        return new Promise(async(resolve, reject) => {
+    queryGET: async (table, whereCond = false, cols = null, limit = null,) => {
+        return new Promise(async (resolve, reject) => {
             let limit = ''
 
             let selectedCols = '*'
@@ -22,12 +23,12 @@ module.exports = {
                 });
         })
     },
-    queryPOST: async(table, data) => {
+    queryPOST: async (table, data) => {
         console.log(data);
-        return new Promise(async(resolve, reject) => {
+        return new Promise(async (resolve, reject) => {
             let containerColumn = []
             let containerValues = []
-                // handles data.length > 0
+            // handles data.length > 0
             let isArray = data.length > 0
             if (isArray) {
                 for (const key in data[0]) {
@@ -49,7 +50,7 @@ module.exports = {
             }
 
             let q = `INSERT INTO ${table}(${containerColumn.join(',')}) VALUES (${containerValues.join(',')}) RETURNING *`
-
+            console.log(q);
             await database.query(q)
                 .then((result) => {
                     resolve(result)
@@ -59,8 +60,8 @@ module.exports = {
                 });
         })
     },
-    queryBulkPOST: async(table, data) => {
-        return new Promise(async(resolve, reject) => {
+    queryBulkPOST: async (table, data) => {
+        return new Promise(async (resolve, reject) => {
             let containerColumn = []
             let containerValues = []
             let mapBulkData = await data.map(item => {
@@ -85,7 +86,7 @@ module.exports = {
                 containerColumn.push(key)
             }
             let q = `INSERT INTO ${table} (${containerColumn.join(',')}) VALUES ${mapBulkData.join(',')} RETURNING *`
-                // console.log(q);
+            // console.log(q);
             await database.query(q)
                 .then((result) => {
                     resolve(result)
@@ -95,8 +96,8 @@ module.exports = {
                 });
         })
     },
-    queryPUT: async(table, data, whereCond = '') => {
-        return new Promise(async(resolve, reject) => {
+    queryPUT: async (table, data, whereCond = '') => {
+        return new Promise(async (resolve, reject) => {
             let containerSetValues = []
             console.log(data);
             for (const key in data) {
@@ -116,8 +117,8 @@ module.exports = {
                 });
         })
     },
-    queryDELETE: async(table, whereCond = '') => {
-        return new Promise(async(resolve, reject) => {
+    queryDELETE: async (table, whereCond = '') => {
+        return new Promise(async (resolve, reject) => {
             let q = `DELETE FROM ${table} ${whereCond}`
             await database.query(q)
                 .then((result) => {
@@ -127,9 +128,28 @@ module.exports = {
                 });
         })
     },
-    queryCustom: async(sql) => {
-        return new Promise(async(resolve, reject) => {
+    queryCustom: async (sql) => {
+        return new Promise(async (resolve, reject) => {
             let q = sql
+            console.log(q);
+            await database.query(q)
+                .then((result) => {
+                    resolve(result)
+                }).catch((err) => {
+                    reject(err)
+                });
+        })
+    },
+    querySoftDELETE: async (table, whereCond = '', deleted_by) => {
+        console.log(deleted_by);
+        return new Promise(async (resolve, reject) => {
+            let deleted_dt = moment().format('YYYY-MM-DD');
+            let q = `UPDATE ${table} 
+                    SET 
+                        deleted_by = '${deleted_by}',
+                        deleted_dt = '${deleted_dt}'
+                    where 
+                        ${whereCond}`
             console.log(q);
             await database.query(q)
                 .then((result) => {
