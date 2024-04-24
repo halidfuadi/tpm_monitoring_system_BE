@@ -27,7 +27,7 @@ async function execFinding(res, data) {
         const lastIdHistoryExec = await getLastIdData(table.tb_r_history_checks, 'history_check_id')
         const lastIdFinding = await getLastIdData(table.tb_r_finding_checks, 'finding_id')
 
-        const itemcheck_id = await uuidToId(table.tb_m_itemchecks, `itemcheck_id`, data.itemcheck_id)
+        const ledger_itemcheck_id = await uuidToId(table.tb_r_ledger_itemchecks, `ledger_itemcheck_id`, data.ledger_itemcheck_id)
         const schedule_id = await uuidToId(table.tb_r_schedules, `schedule_id`, data.schedule_id)
 
         const finding_user_id = await uuidToId(table.tb_m_users, `user_id`, data.finding.user_id)
@@ -80,7 +80,7 @@ async function execFinding(res, data) {
         }
 
         await queryPOST(table.tb_r_finding_checks, objFinding)
-        await queryPUT(table.tb_r_ledger_itemchecks, updtItemcheckLastDt, `WHERE itemcheck_id = ${itemcheck_id}`)
+        await queryPUT(table.tb_r_ledger_itemchecks, updtItemcheckLastDt, `WHERE ledger_itemcheck_id = ${ledger_itemcheck_id}`)
         return response.success(res, 'Success to execution schedule check')
     } catch (error) {
         console.log(error);
@@ -118,7 +118,8 @@ async function execNormal(res, data) {
 
         const objSchedule = {
             status_id: 4, // for DONE
-            actual_check_dt: data.actual_check_dt
+            actual_check_dt: data.actual_check_dt,
+            actual_duration: data.actual_duration
         }
         const objCheckedExec = {
             history_check_id: lastIdHistoryExec,

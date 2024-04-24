@@ -4,6 +4,7 @@ var router = express.Router();
 
 router.get('/search', schedulesControllers.getSchedule)
 router.post('/today-activities', schedulesControllers.getTodayActivities)
+router.post('/visualization', schedulesControllers.getVisualize)
 router.post('/add/pic', schedulesControllers.addPlanPic)
 router.post('/edit/plandate', schedulesControllers.editPlanDate)
 
