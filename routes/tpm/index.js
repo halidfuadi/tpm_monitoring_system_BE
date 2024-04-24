@@ -10,6 +10,8 @@ const filter = require('./filter.route')
 const itemcheckStd_master = require('./itemcheckStd_master.route')
 const itemcheck = require('./itemcheck.route')
 const users = require('./users')
+const spareparts = require('./sparepart.route')
+const itemcheckParts = require('./itemcheckSpareparts.route')
 
 const lines = require('./lines.route')
 router.use('/lines', lines)
@@ -31,6 +33,8 @@ router.use('/history', history)
 
 router.use('/itemcheck-std', itemcheckStd_master)
 router.use('/itemchecks', itemcheck)
+router.use('/spareparts', spareparts)
+router.use('/itemcheck-parts', itemcheckParts)
 
 router.use('/users', users)
 
