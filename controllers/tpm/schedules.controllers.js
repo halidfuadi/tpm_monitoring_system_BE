@@ -146,7 +146,7 @@ module.exports = {
                 3. SERIES CONTAINS DATA STANDARD AND ACTUAL AND LABEL CONTAINS ITEM CHECK
             */
 
-            console.log(req.body);
+            // console.log(req.body);
             let containerFilter = queryHandler(req.body);
             containerFilter.length > 0 ? containerFilter = containerFilter.join(" AND ") : containerFilter = "";
             let schedulesData = await queryGET(table.v_schedules_monthly, `WHERE ${containerFilter} ORDER BY day_idx`);
@@ -171,7 +171,7 @@ module.exports = {
                 data: [],
             }, {
                 name: "plan duration",
-                type: "column",
+                type: "line",
                 data: [],
             }];
             let labels = [];
@@ -180,7 +180,7 @@ module.exports = {
                 series[0].data.push(schedule.actual_duration ?? 0);
                 series[1].data.push(schedule.plan_duration);
                 labels.push(schedule.itemcheck_nm);
-                console.log(schedule);
+                // console.log(schedule);
             });
 
             const visualizeData = {

@@ -14,6 +14,9 @@ const users = require('./users')
 const lines = require('./lines.route')
 router.use('/lines', lines)
 
+const machines = require('./machines.route')
+router.use('/machines', machines)
+
 const status = require('./status.route')
 router.use('/status', status)
 
