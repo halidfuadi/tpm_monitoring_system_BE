@@ -28,7 +28,7 @@ module.exports = {
             let containerFilter = queryHandler(req.query)
 
             containerFilter.length > 0 ? containerFilter = containerFilter.join(" AND ") : containerFilter = ""
-            let schedulesData = await queryGET(table.v_schedules_monthly, `WHERE ${containerFilter} ORDER BY day_idx`)
+            let schedulesData = await queryGET(table.v_schedules_monthly, `WHERE ${containerFilter} ORDER BY schedule_id`)            
             let mapSchedulesPics = await schedulesData.map(async schedule => {
                 let schedule_id = await uuidToId(table.tb_r_schedules, 'schedule_id', schedule.schedule_id) //table, col, uuid
                 let q = `SELECT 
@@ -139,14 +139,7 @@ module.exports = {
     },
     getVisualize: async (req, res) => {
         try {
-            /*
-                DATA MAP:
-                1. GET SCHEDULES ALL BASED ON FILTER optional LINE, MONTH, MACHINE
-                2. MAP DATA INTO SERIES AND LABEL
-                3. SERIES CONTAINS DATA STANDARD AND ACTUAL AND LABEL CONTAINS ITEM CHECK
-            */
 
-            // console.log(req.body);
             let containerFilter = queryHandler(req.body);
             containerFilter.length > 0 ? containerFilter = containerFilter.join(" AND ") : containerFilter = "";
             let schedulesData = await queryGET(table.v_schedules_monthly, `WHERE ${containerFilter} ORDER BY day_idx`);
@@ -192,6 +185,54 @@ module.exports = {
             response.success(res, "success to get visualization of item check", visualizeData);
 
 
+        } catch (error) {
+            console.log(error);
+            response.failed(res, 'Error to get visualization of item check')
+        }
+    },
+    getVisualizeStatus: async (req, res) => {
+        try {
+            let containerFilter = queryHandler(req.body);
+            containerFilter.length > 0 ? containerFilter = containerFilter.join(" AND ") : containerFilter = "";
+            let status = await queryGET(table.tb_m_status, `WHERE deleted_dt is null ORDER BY created_dt ASC`, ['status_id, status_nm']);
+            let lines = await queryGET(table.tb_m_lines, `WHERE deleted_dt is null ORDER BY created_dt ASC`, ['line_id, line_nm']);
+            console.log(lines);
+            let mapStatus = lines.map(async(lines) => {
+                let count = await queryCustom(`SELECT 
+                    COUNT(status_id) as done
+                    FROM v_schedules_monthly 
+                    WHERE line_nm = '${lines.line_nm}' AND ${containerFilter}
+
+
+                `)
+                lines.count = +count.rows[0].count
+                return lines
+            })
+            let waitStatus = await Promise.all(mapStatus)
+            console.log(waitStatus);
+
+            let series = [{
+                name: "Done",
+                type: "column",
+                data: [],
+            }, {
+                name: "plan duration",
+                type: "line",
+                data: [],
+            }];
+
+            let labels = [];
+            waitStatus.forEach(lines => {
+                series[0].data.push(lines.no ?? 0);
+                series[1].data.push(lines.plan_duration);
+                labels.push(lines.line_nm);
+                // console.log(schedule);
+            });
+            const visualizeData = {
+                series,
+                labels
+            };
+            response.success(res, "success to get visualization of item check", visualizeData);
         } catch (error) {
             console.log(error);
             response.failed(res, 'Error to get visualization of item check')
