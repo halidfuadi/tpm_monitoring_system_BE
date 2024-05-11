@@ -15,6 +15,19 @@ async function uuidToId(table, col, uuid) {
     return rawId[0][col]
 }
 
+function getCurrentDateTime() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
+}
+
 
 module.exports = {
     getLedgers: async (req, res) => {
@@ -73,31 +86,6 @@ module.exports = {
     getDetail: async(req, res) => {
         try {
             let idLedger = Number(req.query.ledger_id);
-        //     let q = `
-        //     select 
-        //     trli.ledger_id,
-        //     tmi.itemcheck_id,
-        //     tmi.itemcheck_nm,
-        //     tmp.period_nm,
-        //     tmi.val_periodic,
-        //     tmi.itemcheck_loc ,
-        //     tmi.method_check,
-        //     tmi.period_id,
-        //     tmi.duration,
-        //     tmi.itemcheck_std_id,
-        //     tmi.standard_measurement
-            
-        //     from  tb_r_ledger_itemchecks trli 
-        //     join tb_m_machines tmm on trli.ledger_id = tmm.machine_id
-        //     join tb_m_lines tml  on tmm.line_id = tml.line_id 
-        //     join tb_m_shops tms on tml.shop_id = tms.shop_id 
-        //     join tb_m_plants tmp2 on tml.shop_id = tmp2.plant_id 
-        //     join tb_m_companies tmc on tmp2.company_id = tmc.company_id 
-        //     join tb_m_itemchecks tmi on trli.itemcheck_id = tmi.itemcheck_id
-        //     join tb_m_periodics tmp on tmi.period_id = tmp.period_id 
-        //     join tb_m_itemcheck_std tmis on tmi.itemcheck_std_id = tmis.itemcheck_std_id 
-        //     Where trli.ledger_id = ${idLedger}
-        // `
             let q = `
                 select 
                     tmm.machine_nm , 
@@ -107,12 +95,11 @@ module.exports = {
                     tmi.duration, 
                     tmi.standard_measurement, 
                     tmi.method_check,
-                    trs.plan_check_dt,
                     tmi.itemcheck_id,
                     trs.schedule_id,
                     trli.approval
                 from tb_r_ledger_itemchecks trli 
-                join tb_m_ledgers tml on trli.ledger_id = tml.ledger_id 
+                left join tb_m_ledgers tml on trli.ledger_id = tml.ledger_id 
                 join tb_m_machines tmm on tml.machine_id = tmm.machine_id 
                 join tb_m_itemchecks tmi on trli.itemcheck_id = tmi.itemcheck_id 
                 join tb_m_periodics tmp on tmi.period_id = tmp.period_id 
@@ -148,5 +135,46 @@ module.exports = {
         let updateData = (await queryCustom(q)).rows
         console.log(updateData);
         response.success(res, 'succes to get updated item', updateData)
+    },
+    newLedger: async(req, res) => {
+        try {
+            let ledgerData = req.body
+            ledgerData.changed_dt = getCurrentDateTime()
+            ledgerData.created_dt = getCurrentDateTime()
+            ledgerData.machine_id = await getLastIdData(table.tb_m_machines, 'machine_id')
+            ledgerData.changed_by = 'USER'
+            ledgerData.created_by = 'USER'
+
+            let newMachine = {
+                machine_id: ledgerData.machine_id,
+                machine_nm: ledgerData.machine_nm,
+                changed_dt: getCurrentDateTime(),
+                created_dt: getCurrentDateTime(),
+                changed_by: 'USER',
+                created_by: 'USER',
+                uuid: v4(),
+                line_id: ledgerData.line_id
+            }
+
+            const machine = await queryPOST(table.tb_m_machines, newMachine)
+
+            let newLedger = {
+                ledger_id: ledgerData.machine_id,
+                machine_id: ledgerData.machine_id,
+                changed_dt: getCurrentDateTime(),
+                created_dt: getCurrentDateTime(),
+                changed_by: 'USER',
+                created_by: 'USER',
+                uuid: v4(),
+            }
+
+            console.log(newMachine);
+            console.log(newLedger);
+
+            const ledger = await queryPOST(table.tb_m_ledgers, newLedger)
+
+        } catch (error) {
+            console.log(error);
+        }
     }
 }

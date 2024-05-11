@@ -1,5 +1,5 @@
 const table = require('../../config/table');
-const cronGeneratorSchedule = require('../../functions/cronGeneratorSchedule');
+const scheduleGeneratorNewItem = require('../../functions/scheduleGenerator');
 const getLastIdData = require('../../helpers/getLastIdData');
 const { queryPOST, queryPUT, queryGET, queryCustom } = require('../../helpers/query')
 const response = require('../../helpers/response')
@@ -81,12 +81,14 @@ module.exports = {
                 created_dt: itemCheckData.created_dt,
                 changed_by: itemCheckData.changed_by,
                 changed_dt: itemCheckData.changed_dt,
-                last_check_dt: getCurrentDateTime(),
+                last_check_dt: itemCheckData.plan_check_dt,
                 approval: true,
                 reasons: itemCheckData.reasons
             }
             const ledger_item = await queryPOST(table.tb_r_ledger_itemchecks, newLedgerItem)
             
+            // scheduleGeneratorNewItem(itemCheckData)
+
             let newSchedule = {
                 schedule_id: await getLastIdData(table.tb_r_schedules, 'schedule_id'),
                 uuid: v4(),

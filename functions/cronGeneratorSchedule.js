@@ -55,5 +55,4 @@ async function cronGeneratorSchedule() {
     if (waitmap) console.log(`DATA INSERTED TOTAL: ${successCreatedCount}`);
 }
 
-
 module.exports = cronGeneratorSchedule
