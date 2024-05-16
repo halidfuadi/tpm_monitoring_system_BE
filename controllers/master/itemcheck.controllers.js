@@ -54,41 +54,33 @@ module.exports = {
             itemCheckData.uuid_ledger_item = v4()
 
             let newItem = {
-                itemcheck_id: itemCheckData.itemcheck_id,
-                itemcheck_nm: itemCheckData.itemcheck_nm,
-                method_check: itemCheckData.itemcheck_method,
-                val_periodic: itemCheckData.val_period,
-                period_id: itemCheckData.period_id,
-                standard_measurement: itemCheckData.standard_measurement,
-                created_by: itemCheckData.created_by,
-                created_dt: itemCheckData.created_dt,
-                changed_by: itemCheckData.changed_by,
-                changed_dt: itemCheckData.changed_dt,
-                itemcheck_std_id: 1,
-                last_check_dt: getCurrentDateTime(),
-                incharge_id: 0,
-                initial_date: getCurrentDateTime(),
-                mp: +itemCheckData.mp,
-                uuid: itemCheckData.uuid_item,
-                itemcheck_loc: itemCheckData.itemcheck_loc,
-                duration: itemCheckData.duration
-            }
-            const item = await queryPOST(table.tb_m_itemchecks, newItem)
-
-            let newLedgerItem = {
+                ledger_added_id: await getLastIdData(table.tb_r_ledger_added, 'ledger_added_id'),
                 ledger_itemcheck_id : itemCheckData.ledger_itemcheck_id,
-                uuid: itemCheckData.uuid_ledger_item,
+                uuid: itemCheckData.uuid_item,
                 ledger_id: itemCheckData.ledger_id,
-                itemcheck_id: itemCheckData.itemcheck_id,
+                itemcheck_id: itemCheckData.itemcheck_id,                
                 created_by: itemCheckData.created_by,
                 created_dt: itemCheckData.created_dt,
                 changed_by: itemCheckData.changed_by,
                 changed_dt: itemCheckData.changed_dt,
-                last_check_dt: itemCheckData.plan_check_dt,
-                approval: true,
-                reasons: itemCheckData.reasons
+                last_check_dt: itemCheckData.plan_check_dt,                
+                approval: false,
+                reasons: itemCheckData.reasons,
+                period_id: itemCheckData.period_id,
+                itemcheck_nm: itemCheckData.itemcheck_nm,
+                itemcheck_loc: itemCheckData.itemcheck_loc,
+                method_check: itemCheckData.itemcheck_method,
+                duration: itemCheckData.duration,
+                mp: +itemCheckData.mp,
+                val_periodic: itemCheckData.val_period,
+                initial_date: getCurrentDateTime(),
+                itemcheck_std_id: 1,
+                standard_measurement: itemCheckData.standard_measurement,
+                incharge_id: 0,
             }
-            const ledger_item = await queryPOST(table.tb_r_ledger_itemchecks, newLedgerItem)
+            console.log(newItem);
+            const item = await queryPOST(table.tb_r_ledger_added, newItem)
+
             
             // scheduleGeneratorNewItem(itemCheckData)
 
@@ -250,6 +242,57 @@ module.exports = {
         } catch (error) {
             console.log(error);
         }
+    },
+
+    approvedNewItem: async(req, res) =>{
+        let data = req.body
+        console.log(data);
+
+        let item = {
+            itemcheck_id: await getLastIdData(table.tb_m_itemchecks, 'itemcheck_id'),
+            period_id: data.period_id,
+            uuid: v4(),
+            itemcheck_nm: data.itemcheck_nm,
+            itemcheck_loc: data.itemcheck_loc,
+            method_check: data.method_check,
+            duration: data.duration,
+            mp: data.mp,
+            val_periodic: data.val_periodic,
+            initial_date: data.initial_date,
+            created_by: 'SYSTEM',
+            created_dt: getCurrentDateTime(),
+            changed_by: 'SYSTEM',
+            changed_dt: getCurrentDateTime(),
+            incharge_id: 0,
+            last_check_dt: data.last_check_dt,
+            itemcheck_std_id: data.itemcheck_std_id,
+            standard_measurement: data.standard_measurement
+        }
+        const updateItemcheck = await queryPOST(table.tb_m_itemchecks, item)
+
+        let ledgerItem = {
+            ledger_itemcheck_id: await getLastIdData(table.tb_r_ledger_itemchecks, 'ledger_itemcheck_id'),
+            uuid: v4(),
+            ledger_id: data.ledger_id,
+            itemcheck_id: item.itemcheck_id,
+            created_by: 'SYSTEM',
+            created_dt: getCurrentDateTime(),
+            changed_by: 'SYSTEM',
+            changed_dt: getCurrentDateTime(),
+            last_check_dt: data.last_check_dt,
+        }
+        const updatedLedger = await queryPOST(table.tb_r_ledger_itemchecks, ledgerItem)
+
+        let q = `
+            UPDATE tb_r_ledger_added
+            SET
+                approval = true,
+                itemcheck_id = ${item.itemcheck_id},
+                ledger_itemcheck_id = ${ledgerItem.ledger_itemcheck_id}
+            WHERE ledger_added_id = ${data.ledger_added_id}
+        `
+
+        const updateTRLA = await queryCustom(q)
     }
 
 }

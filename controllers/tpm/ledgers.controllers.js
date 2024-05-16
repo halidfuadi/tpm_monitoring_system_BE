@@ -123,8 +123,7 @@ module.exports = {
                 tmi.mp,
                 COALESCE(CAST(trs.plan_check_dt AS DATE), '0001-01-01') AS plan_check_dt,
                 tmi.itemcheck_id,
-                trs.schedule_id,
-                trli.approval
+                trs.schedule_id 
             FROM 
                 tb_r_ledger_itemchecks trli 
             JOIN 
@@ -154,20 +153,13 @@ module.exports = {
     },
     getUpdate: async(req, res) => {
         let q = `
-            select
+            SELECT*,
                 tmm.machine_nm,
-                tmi.itemcheck_nm,
-                trli.reasons,
-                tmi.val_periodic,
-                tmp.period_nm,
-                tml.line_nm,
-                trli.ledger_itemcheck_id
-            from tb_r_ledger_itemchecks trli
-            join tb_m_machines tmm on tmm.machine_id = trli.ledger_id
-            join tb_m_itemchecks tmi on tmi.itemcheck_id = trli.itemcheck_id
-            join tb_m_periodics tmp on tmp.period_id = tmi.period_id
-            join tb_m_lines tml on tmm.line_id = tml.line_id
-            where trli.approval = true
+                tmp.period_nm
+            FROM tb_r_ledger_added trla
+            JOIN tb_m_machines tmm ON trla.ledger_id = tmm.machine_id
+            JOIN tb_m_periodics tmp ON tmp.period_id = trla.period_id
+            WHERE trla.approval = false
         `
         let updateData = (await queryCustom(q)).rows
         console.log(updateData);

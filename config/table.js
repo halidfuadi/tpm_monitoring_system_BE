@@ -26,7 +26,8 @@ const table = {
     v_tpm_history: 'v_tpm_history',
     tb_m_spareparts: 'tb_m_spareparts',
     tb_m_itemcheck_spareparts: 'tb_m_itemcheck_spareparts',
-    tb_r_ledger_changes: 'tb_r_ledger_changes'
+    tb_r_ledger_changes: 'tb_r_ledger_changes',
+    tb_r_ledger_added: 'tb_r_ledger_added',
 }
 
 

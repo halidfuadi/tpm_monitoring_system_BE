@@ -1,5 +1,5 @@
 var express = require('express');
-const { getItemcheck, addItemCheck, editItemCheck, deleteItemCheck, approveItemCheck, getUpdate, approvedItem } = require('../../controllers/master/itemcheck.controllers');
+const { getItemcheck, addItemCheck, editItemCheck, deleteItemCheck, approveItemCheck, getUpdate, approvedItem, approvedNewItem } = require('../../controllers/master/itemcheck.controllers');
 var router = express.Router();
 
 router.get('/search', getItemcheck)
@@ -9,5 +9,6 @@ router.delete('/deleteItemCheck', deleteItemCheck)
 router.put('/approvalItem', approveItemCheck)
 router.get('/updatedItem', getUpdate)
 router.post('/approvedUpdated', approvedItem)
+router.post('/approvedNew', approvedNewItem)
 
 module.exports = router
