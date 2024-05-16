@@ -81,7 +81,7 @@ module.exports = {
                 tmm.machine_nm,
                 tml.line_id,
                 tml.line_nm,
-                trli.approval
+                COUNT(itemcheck_id)::int AS num_item_checks          
             FROM
                 tb_m_machines tmm 
             LEFT JOIN
@@ -94,8 +94,7 @@ module.exports = {
                 trli.ledger_id, 
                 tmm.machine_nm,
                 tml.line_id, 
-                tml.line_nm,
-                trli.approval
+                tml.line_nm              
             ORDER BY 
                 trli.ledger_id
             `
