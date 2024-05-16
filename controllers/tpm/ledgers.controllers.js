@@ -45,26 +45,51 @@ module.exports = {
             }else if(line_id == 'null' && machine_id != 'null'){
                 let machine_id = await uuidToId(table.tb_m_machines, 'machine_id', req.query.machine_id)
                 whereCond = `AND tmm.machine_id=${machine_id}`
-            }else if(machine_id == 'null' && line_id == 'null'){
+            }else if(machine_id == 'null' && line_id == 'null' || req.query < 0){
                 whereCond = ``
             }
             console.log(whereCond);
+            // let q = `
+            // SELECT
+            //     trli.ledger_id,
+            //     tmm.machine_nm,
+            //     tml.line_id,
+            //     tml.line_nm,
+            //     trli.approval
+            //     -- COUNT(itemcheck_id)::int AS num_item_checks
+            // FROM
+            //     tb_m_machines tmm 
+            // RIGHT JOIN
+            //     tb_r_ledger_itemchecks trli  ON trli.ledger_id = tmm.machine_id	
+            // JOIN
+            //     tb_m_lines tml ON tml.line_id = tmm.line_id 
+            // WHERE
+            //     trli.approval = false ${whereCond}
+            // GROUP BY
+            //     trli.ledger_id, 
+            //     tmm.machine_nm,
+            //     tml.line_id, 
+            //     tml.line_nm,
+            //     trli.approval
+            // ORDER BY 
+            //     trli.ledger_id
+            // `
+
             let q = `
             SELECT
                 trli.ledger_id,
                 tmm.machine_nm,
                 tml.line_id,
                 tml.line_nm,
-                trli.approval,
-                COUNT(trli.ledger_id)::int AS num_item_checks
+                trli.approval
             FROM
                 tb_m_machines tmm 
-            JOIN
+            LEFT JOIN
                 tb_r_ledger_itemchecks trli  ON trli.ledger_id = tmm.machine_id	
             JOIN
                 tb_m_lines tml ON tml.line_id = tmm.line_id 
             WHERE
-                trli.deleted_dt is null AND trli.approval = false ${whereCond}
+                tmm.deleted_by IS NULL ${whereCond}
             GROUP BY
                 trli.ledger_id, 
                 tmm.machine_nm,
@@ -74,6 +99,7 @@ module.exports = {
             ORDER BY 
                 trli.ledger_id
             `
+
             let qtyItemcheckAtLedger = (await queryCustom(q)).rows
             response.success(res, "success to get ledgers", qtyItemcheckAtLedger)
         } catch (error) {
@@ -87,25 +113,36 @@ module.exports = {
         try {
             let idLedger = Number(req.query.ledger_id);
             let q = `
-                select 
-                    tmm.machine_nm , 
-                    tmi.itemcheck_nm, 
-                    tmi.val_periodic, 
-                    tmp.period_nm, 
-                    tmi.duration, 
-                    tmi.standard_measurement, 
-                    tmi.method_check,
-                    tmi.itemcheck_id,
-                    trs.schedule_id,
-                    trli.approval
-                from tb_r_ledger_itemchecks trli 
-                left join tb_m_ledgers tml on trli.ledger_id = tml.ledger_id 
-                join tb_m_machines tmm on tml.machine_id = tmm.machine_id 
-                join tb_m_itemchecks tmi on trli.itemcheck_id = tmi.itemcheck_id 
-                join tb_m_periodics tmp on tmi.period_id = tmp.period_id 
-                join tb_r_schedules trs on trli.ledger_itemcheck_id = trs.ledger_itemcheck_id
-                where tml.ledger_id = ${idLedger}
-                order by tmi.itemcheck_nm
+            SELECT 
+                tmm.machine_nm, 
+                tmi.itemcheck_nm, 
+                tmi.val_periodic, 
+                tmp.period_nm, 
+                tmi.duration, 
+                tmi.standard_measurement, 
+                tmi.method_check,
+                tmi.mp,
+                COALESCE(CAST(trs.plan_check_dt AS DATE), '0001-01-01') AS plan_check_dt,
+                tmi.itemcheck_id,
+                trs.schedule_id,
+                trli.approval
+            FROM 
+                tb_r_ledger_itemchecks trli 
+            JOIN 
+                tb_m_ledgers tml ON trli.ledger_id = tml.ledger_id 
+            JOIN 
+                tb_m_machines tmm ON tml.machine_id = tmm.machine_id 
+            JOIN 
+                tb_m_itemchecks tmi ON trli.itemcheck_id = tmi.itemcheck_id 
+            JOIN 
+                tb_m_periodics tmp ON tmi.period_id = tmp.period_id 
+            LEFT JOIN 
+                tb_r_schedules trs ON trli.ledger_itemcheck_id = trs.ledger_itemcheck_id
+            WHERE 
+                tml.ledger_id = ${idLedger}
+            ORDER BY 
+                tmi.itemcheck_nm
+        
             `
             console.log(q);
             let detailsIc = (await queryCustom(q)).rows;            
@@ -124,7 +161,8 @@ module.exports = {
                 trli.reasons,
                 tmi.val_periodic,
                 tmp.period_nm,
-                tml.line_nm
+                tml.line_nm,
+                trli.ledger_itemcheck_id
             from tb_r_ledger_itemchecks trli
             join tb_m_machines tmm on tmm.machine_id = trli.ledger_id
             join tb_m_itemchecks tmi on tmi.itemcheck_id = trli.itemcheck_id

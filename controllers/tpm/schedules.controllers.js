@@ -139,7 +139,6 @@ module.exports = {
     },
     getVisualize: async (req, res) => {
         try {
-
             let containerFilter = queryHandler(req.body);
             containerFilter.length > 0 ? containerFilter = containerFilter.join(" AND ") : containerFilter = "";
             let schedulesData = await queryGET(table.v_schedules_monthly, `WHERE ${containerFilter} ORDER BY day_idx`);
@@ -194,45 +193,13 @@ module.exports = {
         try {
             let containerFilter = queryHandler(req.body);
             containerFilter.length > 0 ? containerFilter = containerFilter.join(" AND ") : containerFilter = "";
-            let status = await queryGET(table.tb_m_status, `WHERE deleted_dt is null ORDER BY created_dt ASC`, ['status_id, status_nm']);
-            let lines = await queryGET(table.tb_m_lines, `WHERE deleted_dt is null ORDER BY created_dt ASC`, ['line_id, line_nm']);
-            console.log(lines);
-            let mapStatus = lines.map(async(lines) => {
-                let count = await queryCustom(`SELECT 
-                    COUNT(status_id) as done
-                    FROM v_schedules_monthly 
-                    WHERE line_nm = '${lines.line_nm}' AND ${containerFilter}
-
-
-                `)
-                lines.count = +count.rows[0].count
-                return lines
+            let lineData = await queryGET(table.tb_m_lines);
+            let mapStatus = lineData.map(async(status) => {
+                let status_id = await uuidToId(table.tb_m_status, 'status_id', status.status_id)
+                
             })
-            let waitStatus = await Promise.all(mapStatus)
-            console.log(waitStatus);
-
-            let series = [{
-                name: "Done",
-                type: "column",
-                data: [],
-            }, {
-                name: "plan duration",
-                type: "line",
-                data: [],
-            }];
-
-            let labels = [];
-            waitStatus.forEach(lines => {
-                series[0].data.push(lines.no ?? 0);
-                series[1].data.push(lines.plan_duration);
-                labels.push(lines.line_nm);
-                // console.log(schedule);
-            });
-            const visualizeData = {
-                series,
-                labels
-            };
-            response.success(res, "success to get visualization of item check", visualizeData);
+            const waitMapSchedule = await Promise.all(mapStatus)
+            console.log(waitMapSchedule);
         } catch (error) {
             console.log(error);
             response.failed(res, 'Error to get visualization of item check')

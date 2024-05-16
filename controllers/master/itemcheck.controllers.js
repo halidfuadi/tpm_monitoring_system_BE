@@ -1,3 +1,4 @@
+const { duration } = require('moment');
 const table = require('../../config/table');
 const scheduleGeneratorNewItem = require('../../functions/scheduleGenerator');
 const getLastIdData = require('../../helpers/getLastIdData');
@@ -5,6 +6,8 @@ const { queryPOST, queryPUT, queryGET, queryCustom } = require('../../helpers/qu
 const response = require('../../helpers/response')
 const queryHandler = require('../queryhandler.function')
 const { v4 } = require('uuid');
+const idToUuid = require('../../helpers/idToUuid');
+const { checkout } = require('../../app');
 
 async function uuidToId(table, col, uuid) {
     console.log(`SELECT ${col} FROM ${table} WHERE uuid = '${uuid}'`);
@@ -89,17 +92,17 @@ module.exports = {
             
             // scheduleGeneratorNewItem(itemCheckData)
 
-            let newSchedule = {
-                schedule_id: await getLastIdData(table.tb_r_schedules, 'schedule_id'),
-                uuid: v4(),
-                ledger_itemcheck_id: itemCheckData.ledger_itemcheck_id,
-                plan_check_dt: itemCheckData.plan_check_dt,
-                created_by: 'GENERATOR',
-                created_dt: getCurrentDateTime(),
-                status_id: 0,
-                plan_duration: itemCheckData.duration
-            }
-            const schedule = await queryPOST(table.tb_r_schedules, newSchedule)
+            // let newSchedule = {
+            //     schedule_id: await getLastIdData(table.tb_r_schedules, 'schedule_id'),
+            //     uuid: v4(),
+            //     ledger_itemcheck_id: itemCheckData.ledger_itemcheck_id,
+            //     plan_check_dt: itemCheckData.plan_check_dt,
+            //     created_by: 'GENERATOR',
+            //     created_dt: getCurrentDateTime(),
+            //     status_id: 0,
+            //     plan_duration: itemCheckData.duration
+            // }
+            // const schedule = await queryPOST(table.tb_r_schedules, newSchedule)
 
             response.success(res, 'sucess add data')
         } catch (error) {
@@ -109,7 +112,48 @@ module.exports = {
     },
     editItemCheck: async(req, res) => {
         try {
-            console.log("berhasil");
+            let newData = req.body
+            console.log(newData);            
+            let oldData = await queryGET(table.tb_m_itemchecks, `WHERE itemcheck_id = ${newData.itemcheck_id}`)
+            console.log(oldData);
+            oldData = oldData[0]
+            let joinData = {
+                ledger_changes_id: await getLastIdData(table.tb_r_ledger_changes, 'ledger_changes_id'),
+                itemcheck_id: oldData.itemcheck_id,
+                itemcheck_nm_old: oldData.itemcheck_nm,
+                itemcheck_nm_new: newData.itemcheck_nm,
+                itemcheck_loc: oldData.itemcheck_loc,
+                mp_old: oldData.mp,
+                mp_new: +newData.mp,
+                period_id_old: oldData.period_id,
+                period_id_new: +newData.period_id,
+                method_check_old: oldData.method_check,
+                method_check_new: newData.method_check,
+                duration_old: oldData.duration,
+                duration_new: +newData.duration,
+                val_periodic_old: oldData.val_periodic,
+                val_periodic_new: +newData.val_periodic,
+                initial_date: Intl.DateTimeFormat('en-US', {timeZone: 'Asia/Jakarta', dateStyle: 'full', timeStyle: 'long'}).format(oldData.initial_date),
+                created_by: 'SYSTEM',
+                created_dt: getCurrentDateTime(),
+                changed_by: 'USER',
+                changed_dt: getCurrentDateTime(),
+                incharge_id: oldData.incharge_id,
+                standard_measurement_old: oldData.standard_measurement,
+                standard_measurement_new: newData.standard_measurement,
+                approval: false,
+                uuid: v4(),
+                last_check_dt: Intl.DateTimeFormat('en-US', {timeZone: 'Asia/Jakarta', dateStyle: 'full', timeStyle: 'long'}).format(oldData.last_check_dt),
+                itemcheck_std_id: oldData.itemcheck_std_id,
+                ledger_id: newData.ledger_id            
+            }
+
+            console.log(joinData);
+
+            const insert = await queryPOST(table.tb_r_ledger_changes, joinData)
+
+            console.log(joinData);
+            
         } catch (error) {
             console.log(error);
             response.failed(res, 'Error to Edit data')
@@ -140,5 +184,72 @@ module.exports = {
             console.log(error);
             response.failed(res, 'Error to deleted data')
         }
+    },
+    approveItemCheck: async(req, res) => {
+        try {
+            let item = req.body
+            let q = `
+                UPDATE tb_r_ledger_itemchecks
+                SET
+                    approval = false
+                WHERE ledger_itemcheck_id = ${item.ledger_itemcheck_id}
+            `
+            let hasil = await queryCustom(q)
+            response.success(res, 'data approved')
+        } catch (error) {
+            
+        }
+    },
+    getUpdate: async(req, res) => {
+        try {
+            let q = `
+                SELECT
+                    trlc.*,
+                    tmm.machine_nm
+                FROM tb_r_ledger_changes trlc
+                JOIN tb_m_machines tmm ON tmm.machine_id = trlc.ledger_id
+                WHERE trlc.approval = false
+            `
+            let updated = (await queryCustom(q)).rows
+            console.log("disini");
+            console.log(updated);
+            response.success(res, 'succes to get updated item', updated)
+        } catch (error) {
+            console.log(error);
+        }
+    },
+
+    approvedItem: async(req, res) =>{
+        try {
+            let data = req.body
+            
+            let newData = {
+                period_id: data.period_id_new,
+                uuid: await idToUuid(table.tb_m_itemchecks, 'itemcheck_id', data.itemcheck_id),
+                itemcheck_nm: data.itemcheck_nm_new,
+                itemcheck_loc: data.itemcheck_loc,
+                method_check: data.method_check_new,
+                duration: data.duration_new,
+                mp: data.mp_new,
+                val_periodic: data.val_periodic_new,
+                initial_date: data.initial_date,
+                changed_by: 'USER',
+                changed_dt: getCurrentDateTime(),
+                incharge_id: 0,
+                standard_measurement: data.standard_measurement_new
+            }
+
+            const updated = await queryPUT(table.tb_m_itemchecks, newData, `WHERE itemcheck_id = ${data.itemcheck_id}`)            
+            let approve = {
+                approval : true
+            }
+            const history = await queryPUT(table.tb_r_ledger_changes, approve, `WHERE ledger_changes_id = ${data.ledger_changes_id}`)
+            
+            response.success(res, 'Success to Update Data', updated)
+
+        } catch (error) {
+            console.log(error);
+        }
     }
+
 }
