@@ -26,7 +26,7 @@ async function cronGeneratorSchedule() {
 
         let timeLastCheck = new Date().getTime() - forecaseSubsOneMonth
         const isDateGB = offsettime >= timeLastCheck // GB = Greatherthen Before
-        console.log(moment(offsettime).startOf('day').fromNow());
+        // console.log(moment(offsettime).startOf('day').fromNow());
         if (isDateGB) {
             const formattedDate = moment(offsettime).format('YYYY-MM-DD')
 

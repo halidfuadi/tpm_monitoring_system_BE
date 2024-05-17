@@ -8,6 +8,7 @@ const queryHandler = require('../queryhandler.function')
 const { v4 } = require('uuid');
 const idToUuid = require('../../helpers/idToUuid');
 const { checkout } = require('../../app');
+const cronGeneratorSchedule = require('../../functions/cronGeneratorSchedule');
 
 async function uuidToId(table, col, uuid) {
     console.log(`SELECT ${col} FROM ${table} WHERE uuid = '${uuid}'`);
@@ -245,54 +246,59 @@ module.exports = {
     },
 
     approvedNewItem: async(req, res) =>{
-        let data = req.body
-        console.log(data);
+        try {
+            let data = req.body
+            console.log(data);
+    
+            let item = {
+                itemcheck_id: await getLastIdData(table.tb_m_itemchecks, 'itemcheck_id'),
+                period_id: data.period_id,
+                uuid: v4(),
+                itemcheck_nm: data.itemcheck_nm,
+                itemcheck_loc: data.itemcheck_loc,
+                method_check: data.method_check,
+                duration: data.duration,
+                mp: data.mp,
+                val_periodic: data.val_periodic,
+                initial_date: data.initial_date,
+                created_by: 'SYSTEM',
+                created_dt: getCurrentDateTime(),
+                changed_by: 'SYSTEM',
+                changed_dt: getCurrentDateTime(),
+                incharge_id: 0,
+                last_check_dt: data.last_check_dt,
+                itemcheck_std_id: data.itemcheck_std_id,
+                standard_measurement: data.standard_measurement
+            }
+            const updateItemcheck = await queryPOST(table.tb_m_itemchecks, item)
+    
+            let ledgerItem = {
+                ledger_itemcheck_id: await getLastIdData(table.tb_r_ledger_itemchecks, 'ledger_itemcheck_id'),
+                uuid: v4(),
+                ledger_id: data.ledger_id,
+                itemcheck_id: item.itemcheck_id,
+                created_by: 'SYSTEM',
+                created_dt: getCurrentDateTime(),
+                changed_by: 'SYSTEM',
+                changed_dt: getCurrentDateTime(),
+                last_check_dt: data.last_check_dt,
+            }
+            const updatedLedger = await queryPOST(table.tb_r_ledger_itemchecks, ledgerItem)
+    
+            let q = `
+                UPDATE tb_r_ledger_added
+                SET
+                    approval = true,
+                    itemcheck_id = ${item.itemcheck_id},
+                    ledger_itemcheck_id = ${ledgerItem.ledger_itemcheck_id}
+                WHERE ledger_added_id = ${data.ledger_added_id}
+            `    
+            const updateTRLA = await queryCustom(q)
+            await cronGeneratorSchedule()    
 
-        let item = {
-            itemcheck_id: await getLastIdData(table.tb_m_itemchecks, 'itemcheck_id'),
-            period_id: data.period_id,
-            uuid: v4(),
-            itemcheck_nm: data.itemcheck_nm,
-            itemcheck_loc: data.itemcheck_loc,
-            method_check: data.method_check,
-            duration: data.duration,
-            mp: data.mp,
-            val_periodic: data.val_periodic,
-            initial_date: data.initial_date,
-            created_by: 'SYSTEM',
-            created_dt: getCurrentDateTime(),
-            changed_by: 'SYSTEM',
-            changed_dt: getCurrentDateTime(),
-            incharge_id: 0,
-            last_check_dt: data.last_check_dt,
-            itemcheck_std_id: data.itemcheck_std_id,
-            standard_measurement: data.standard_measurement
+        } catch (error) {
+            
         }
-        const updateItemcheck = await queryPOST(table.tb_m_itemchecks, item)
-
-        let ledgerItem = {
-            ledger_itemcheck_id: await getLastIdData(table.tb_r_ledger_itemchecks, 'ledger_itemcheck_id'),
-            uuid: v4(),
-            ledger_id: data.ledger_id,
-            itemcheck_id: item.itemcheck_id,
-            created_by: 'SYSTEM',
-            created_dt: getCurrentDateTime(),
-            changed_by: 'SYSTEM',
-            changed_dt: getCurrentDateTime(),
-            last_check_dt: data.last_check_dt,
-        }
-        const updatedLedger = await queryPOST(table.tb_r_ledger_itemchecks, ledgerItem)
-
-        let q = `
-            UPDATE tb_r_ledger_added
-            SET
-                approval = true,
-                itemcheck_id = ${item.itemcheck_id},
-                ledger_itemcheck_id = ${ledgerItem.ledger_itemcheck_id}
-            WHERE ledger_added_id = ${data.ledger_added_id}
-        `
-
-        const updateTRLA = await queryCustom(q)
     }
 
 }

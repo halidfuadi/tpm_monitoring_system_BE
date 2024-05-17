@@ -21,5 +21,24 @@ module.exports = {
             console.log(error);
             response.failed(res, 'Error to get history')
         }
+    },
+
+    getNewItem: async(req, res) => {
+        try {
+            let q = `
+                SELECT
+                    trla.*,
+                    tmm.machine_nm,
+                    tmp.period_nm
+                FROM tb_r_ledger_added trla
+                JOIN tb_m_machines tmm ON tmm.machine_id = trla.ledger_id
+                JOIN tb_m_periodics tmp ON tmp.period_id = trla.period_id
+            `
+            const newItemData = (await queryCustom(q)).rows
+            console.log(newItemData);
+            response.success(res, 'success to get history added item', newItemData)
+        } catch (error) {            
+            console.log(error);
+        }
     }
 }
