@@ -13,14 +13,8 @@ const { database } = require('./config/database');
 const cronGeneratorSchedule = require('./functions/cronGeneratorSchedule');
 const cronCheckDelayStatus = require('./functions/cronCheckDelayStatus');
 
-async function init_start() {
-    await cronGeneratorSchedule()
-    await cronCheckDelayStatus()
-}
-
-init_start()
-
-
+cronGeneratorSchedule()
+cronCheckDelayStatus()
 
 database.connect()
 console.log('DB Connecttion:');

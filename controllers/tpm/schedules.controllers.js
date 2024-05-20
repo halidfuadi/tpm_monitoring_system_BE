@@ -204,7 +204,7 @@ module.exports = {
             cons = (await queryCustom(q)).rows
             
             let series = [{
-                name: "Status",
+                name: "Total Item",
                 type: "column",
                 data: [],
             }];
@@ -243,7 +243,7 @@ module.exports = {
             cons = (await queryCustom(q)).rows
             
             let series = [{
-                name: "Item",
+                name: "Total Item",
                 type: "column",
                 data: [],
             }];

@@ -10,5 +10,6 @@ router.put('/approvalItem', approveItemCheck)
 router.get('/updatedItem', getUpdate)
 router.post('/approvedUpdated', approvedItem)
 router.post('/approvedNew', approvedNewItem)
+router.post('/deleteItemcheck', deleteItemCheck)
 
 module.exports = router

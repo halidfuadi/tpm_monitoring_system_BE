@@ -16,7 +16,6 @@ async function uuidToId(table, col, uuid) {
     let rawId = await queryGET(table, `WHERE uuid = '${uuid}'`, [col])
     return rawId[0][col]
 }
-
 function getCurrentDateTime() {
     const now = new Date();
     const year = now.getFullYear();
@@ -29,7 +28,6 @@ function getCurrentDateTime() {
 
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
 }
-
 module.exports = {
     getItemcheck: async(req, res) => {
         try {
@@ -81,21 +79,6 @@ module.exports = {
             }
             console.log(newItem);
             const item = await queryPOST(table.tb_r_ledger_added, newItem)
-
-            
-            // scheduleGeneratorNewItem(itemCheckData)
-
-            // let newSchedule = {
-            //     schedule_id: await getLastIdData(table.tb_r_schedules, 'schedule_id'),
-            //     uuid: v4(),
-            //     ledger_itemcheck_id: itemCheckData.ledger_itemcheck_id,
-            //     plan_check_dt: itemCheckData.plan_check_dt,
-            //     created_by: 'GENERATOR',
-            //     created_dt: getCurrentDateTime(),
-            //     status_id: 0,
-            //     plan_duration: itemCheckData.duration
-            // }
-            // const schedule = await queryPOST(table.tb_r_schedules, newSchedule)
 
             response.success(res, 'sucess add data')
         } catch (error) {
@@ -151,33 +134,7 @@ module.exports = {
             console.log(error);
             response.failed(res, 'Error to Edit data')
         }
-    },
-    deleteItemCheck: async(req, res) => {
-        try {
-
-            let idToDelete = Number(req.query.itemcheck_id) //pastikan item check id adalah number 
-            let deleteDetails = req.body
-            let q = `
-                UPDATE tb_m_itemchecks
-                SET 
-                    deleted_by = '${deleteDetails.deleted_by}',
-                    deleted_dt = '${deleteDetails.deleted_dt}'
-                where itemcheck_id = ${idToDelete}
-            `
-
-            await queryCustom(q);
-            let sucessDelete = deleteDetails
-            sucessDelete.itemcheck_id = idToDelete
-
-            response.success(res, 'sucess to delete data', sucessDelete);
-
-            console.log(q);
-
-        } catch (error) {
-            console.log(error);
-            response.failed(res, 'Error to deleted data')
-        }
-    },
+    },   
     approveItemCheck: async(req, res) => {
         try {
             let item = req.body
@@ -211,7 +168,6 @@ module.exports = {
             console.log(error);
         }
     },
-
     approvedItem: async(req, res) =>{
         try {
             let data = req.body
@@ -244,7 +200,6 @@ module.exports = {
             console.log(error);
         }
     },
-
     approvedNewItem: async(req, res) =>{
         try {
             let data = req.body
@@ -299,6 +254,38 @@ module.exports = {
         } catch (error) {
             
         }
+    },
+    deleteItemCheck: async(req, res) => {
+        try {
+            let deleteItemCheck = req.body
+            let q = `
+                UPDATE tb_r_ledger_itemchecks
+                SET deleted_by = 'HALID'
+                WHERE ledger_itemcheck_id = ${deleteItemCheck.ledger_itemcheck_id};            
+            `
+            const deleted = await queryCustom(q)
+
+            let deleteSchedule = `
+                UPDATE tb_r_schedules
+                SET deleted_by = 'HALID'
+                WHERE ledger_itemcheck_id = ${deleteItemCheck.ledger_itemcheck_id}
+            `
+
+            const deleting = await queryCustom(deleteSchedule)
+
+            let deleteItem = `
+                UPDATE tb_m_itemchecks
+                SET deleted_by = 'HALID'
+                WHERE itemcheck_id = ${deleteItemCheck.itemcheck_id}
+            `
+
+            const deletedItem = await queryCustom(deleteItem)
+            
+            response.success(res, 'data deleted', deleted)
+        } catch (error) {
+            console.log(error);
+        }
     }
+
 
 }

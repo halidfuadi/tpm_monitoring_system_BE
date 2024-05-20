@@ -130,10 +130,7 @@ async function execNormal(res, data) {
         const updtItemcheckLastDt = {
             last_check_dt: data.actual_check_dt
         }
-        console.log('updtItemcheckLastDt');
-        console.log(updtItemcheckLastDt);
-        console.log(ledger_itemcheck_id);
-
+                
         await queryPUT(table.tb_r_schedules, objSchedule, `WHERE schedule_id = ${schedule_id}`)
         await queryPOST(table.tb_r_history_checks, objCheckedExec)
         await queryPUT(table.tb_r_ledger_itemchecks, updtItemcheckLastDt, `WHERE ledger_itemcheck_id = ${ledger_itemcheck_id}`)

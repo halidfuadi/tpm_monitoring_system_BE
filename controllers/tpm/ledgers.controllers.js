@@ -89,7 +89,7 @@ module.exports = {
             JOIN
                 tb_m_lines tml ON tml.line_id = tmm.line_id 
             WHERE
-                tmm.deleted_by IS NULL ${whereCond}
+                tmm.deleted_by IS NULL ${whereCond} AND trli.deleted_by IS NULL
             GROUP BY
                 trli.ledger_id, 
                 tmm.machine_nm,
@@ -121,6 +121,7 @@ module.exports = {
                 tmi.standard_measurement, 
                 tmi.method_check,
                 tmi.mp,
+                trli.ledger_itemcheck_id,
                 COALESCE(CAST(trs.plan_check_dt AS DATE), '0001-01-01') AS plan_check_dt,
                 tmi.itemcheck_id,
                 trs.schedule_id 
@@ -137,7 +138,7 @@ module.exports = {
             LEFT JOIN 
                 tb_r_schedules trs ON trli.ledger_itemcheck_id = trs.ledger_itemcheck_id
             WHERE 
-                tml.ledger_id = ${idLedger}
+                tml.ledger_id = ${idLedger} AND trli.deleted_by IS NULL
             ORDER BY 
                 tmi.itemcheck_nm
         
