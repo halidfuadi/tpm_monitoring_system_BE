@@ -40,5 +40,23 @@ module.exports = {
         } catch (error) {            
             console.log(error);
         }
+    },
+    getEditItem: async(req, res) => {
+        try {
+            let q = `
+                SELECT
+                    trlc.*,
+                    tmm.machine_nm,
+                    tmp.period_nm
+                FROM tb_r_ledger_changes trlc
+                JOIN tb_m_machines tmm ON tmm.machine_id = trlc.ledger_id
+                JOIN tb_m_periodics tmp ON tmp.period_id = trlc.period_id_old
+            `
+            const newItemData = (await queryCustom(q)).rows
+            console.log(newItemData);
+            response.success(res, 'success to get history added item', newItemData)
+        } catch (error) {            
+            console.log(error);
+        }
     }
 }

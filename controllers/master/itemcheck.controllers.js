@@ -74,7 +74,7 @@ module.exports = {
                 duration: itemCheckData.duration,
                 mp: +itemCheckData.mp,
                 val_periodic: itemCheckData.val_period,
-                initial_date: getCurrentDateTime(),
+                initial_date: itemCheckData.plan_check_dt,
                 itemcheck_std_id: 1,
                 standard_measurement: itemCheckData.standard_measurement,
                 incharge_id: 0,

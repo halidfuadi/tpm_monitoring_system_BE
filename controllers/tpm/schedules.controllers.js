@@ -189,17 +189,80 @@ module.exports = {
             response.failed(res, 'Error to get visualization of item check')
         }
     },
+
     getVisualizeStatus: async (req, res) => {
         try {
             let containerFilter = queryHandler(req.body);
             containerFilter.length > 0 ? containerFilter = containerFilter.join(" AND ") : containerFilter = "";
-            let lineData = await queryGET(table.tb_m_lines);
-            let mapStatus = lineData.map(async(status) => {
-                let status_id = await uuidToId(table.tb_m_status, 'status_id', status.status_id)
-                
-            })
-            const waitMapSchedule = await Promise.all(mapStatus)
-            console.log(waitMapSchedule);
+            
+            let q = `
+                SELECT line_nm, status_nm, COUNT(*) AS status_count
+                FROM v_schedules_monthly vsm 
+                WHERE ${containerFilter}
+                GROUP BY line_nm, status_nm;            
+            `            
+            cons = (await queryCustom(q)).rows
+            
+            let series = [{
+                name: "Status",
+                type: "column",
+                data: [],
+            }];
+            let labels = [];
+
+            cons.forEach(cons => {
+                series[0].data.push(cons.status_count ?? 0);
+                // series[1].data.push(cons.status_nm);
+                labels.push(cons.line_nm + ' ' + cons.status_nm);
+                // console.log(schedule);
+            });
+
+            const visualizeData = {
+                series,
+                labels
+            };
+
+            response.success(res, "berhasil", visualizeData)
+
+        } catch (error) {
+            console.log(error);
+            response.failed(res, 'Error to get visualization of item check')
+        }
+    },
+    getVisualizeLine: async (req, res) => {
+        try {
+            let containerFilter = queryHandler(req.body);
+            containerFilter.length > 0 ? containerFilter = containerFilter.join(" AND ") : containerFilter = "";
+            
+            let q = `
+                SELECT line_nm, COUNT(*) AS item_count
+                FROM v_schedules_monthly vsm
+                WHERE ${containerFilter}
+                GROUP BY line_nm;                        
+            `            
+            cons = (await queryCustom(q)).rows
+            
+            let series = [{
+                name: "Item",
+                type: "column",
+                data: [],
+            }];
+            let labels = [];
+
+            cons.forEach(cons => {
+                series[0].data.push(cons.item_count ?? 0);
+                // series[1].data.push(cons.status_nm);
+                labels.push(cons.line_nm);
+                // console.log(schedule);
+            });
+
+            const visualizeData = {
+                series,
+                labels
+            };
+
+            response.success(res, "berhasil", visualizeData)
+
         } catch (error) {
             console.log(error);
             response.failed(res, 'Error to get visualization of item check')
