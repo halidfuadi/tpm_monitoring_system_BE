@@ -1,18 +1,32 @@
-const pg = require('pg')
-pg.types.setTypeParser(1082, function(stringValue) {
-    return stringValue; //1082 for date type
+const pg = require("pg");
+pg.types.setTypeParser(1082, function (stringValue) {
+  return stringValue; //1082 for date type
 });
 
-const database = new pg.Client({
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: 'tpm_development',
-    port: process.env.DB_PORT,
-    host: process.env.DB_HOST,
-    ssl: false,
-    timezone: 'Asia/Jakarta'
+const config = {
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: "tpm_system",
+  port: process.env.DB_PORT,
+  host: process.env.DB_HOST,
+  ssl: false,
+  timezone: "Asia/Jakarta",
+};
+
+const database = new pg.Client(config);
+
+const databasePool = new pg.Pool(config);
+
+const types = pg.types;
+types.setTypeParser(1114, (stringValue) => {
+  return stringValue; //1114 for time without timezone type
+});
+
+types.setTypeParser(1082, (stringValue) => {
+  return stringValue; //1082 for date type
 });
 
 module.exports = {
-    database
-}
+  database,
+  databasePool,
+};
