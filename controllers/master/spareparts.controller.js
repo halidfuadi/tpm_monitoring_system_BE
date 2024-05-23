@@ -18,6 +18,8 @@ async function uuidToId(table, col, uuid) {
 module.exports = {
     sparepartsGet: async (req, res) => {
         try {
+            let filter = queryHandler(req.query)
+            console.log(filter);
             let dataParts = queryGET(tb_m_spareparts)
             response.success(res, dataParts)
 
@@ -35,7 +37,8 @@ module.exports = {
 
         } catch (error) {
             console.log(error);
-            response.failed(res, "failed add sparepart data, please check your body :) ")
+            response.failed(res, 
+                "failed add sparepart data, please check your body :) ")
         }
 
     },

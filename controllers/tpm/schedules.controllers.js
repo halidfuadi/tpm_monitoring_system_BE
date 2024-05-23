@@ -196,26 +196,55 @@ module.exports = {
             containerFilter.length > 0 ? containerFilter = containerFilter.join(" AND ") : containerFilter = "";
             
             let q = `
-                SELECT line_nm, status_nm, COUNT(*) AS status_count
-                FROM v_schedules_monthly vsm 
-                WHERE ${containerFilter}
-                GROUP BY line_nm, status_nm;            
+            SELECT 
+                line_nm,
+                SUM(CASE WHEN status_nm = 'DONE' THEN 1 ELSE 0 END) AS DONE,
+                SUM(CASE WHEN status_nm = 'PLANNING' THEN 1 ELSE 0 END) AS PLANNING,
+                SUM(CASE WHEN status_nm = 'DELAY' THEN 1 ELSE 0 END) AS DELAY,
+                SUM(CASE WHEN status_nm IN ('DONE', 'PLANNING', 'DELAY') THEN 1 ELSE 0 END) AS TOTAL
+            FROM 
+                v_schedules_monthly vsm
+            WHERE ${containerFilter}
+            GROUP BY line_nm
+                   
             `            
+            console.log(q);
             cons = (await queryCustom(q)).rows
-            
-            let series = [{
-                name: "Total Item",
-                type: "column",
-                data: [],
-            }];
+            console.log(cons);
+            let series = [
+                {
+                    name: "Planned",
+                    type: "column",
+                    data: [],
+                },
+                {
+                    name: "Done",
+                    type: "column",
+                    data: [],
+                },
+                {
+                    name: "Total Item",
+                    type: "line",
+                    data: [],
+                },
+                {
+                    name: "Delay",
+                    type: "column",
+                    data: [],
+                },
+            ];
             let labels = [];
 
             cons.forEach(cons => {
-                series[0].data.push(cons.status_count ?? 0);
-                // series[1].data.push(cons.status_nm);
-                labels.push(cons.line_nm + ' ' + cons.status_nm);
+                series[0].data.push(cons.planning ?? 0);
+                series[1].data.push(cons.done ?? 0);
+                series[2].data.push(cons.total ?? 0);
+                series[3].data.push(cons.delay ?? 0);
+                labels.push(cons.line_nm);
                 // console.log(schedule);
             });
+
+            console.log(cons);
 
             const visualizeData = {
                 series,

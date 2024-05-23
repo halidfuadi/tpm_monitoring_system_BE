@@ -110,6 +110,7 @@ module.exports = {
                 val_periodic_old: oldData.val_periodic,
                 val_periodic_new: +newData.val_periodic,
                 initial_date: Intl.DateTimeFormat('en-US', {timeZone: 'Asia/Jakarta', dateStyle: 'full', timeStyle: 'long'}).format(oldData.initial_date),
+                initial_date: oldData.initial_date,
                 created_by: 'SYSTEM',
                 created_dt: getCurrentDateTime(),
                 changed_by: 'USER',
@@ -260,26 +261,26 @@ module.exports = {
             let deleteItemCheck = req.body
             let q = `
                 UPDATE tb_r_ledger_itemchecks
-                SET deleted_by = 'HALID'
+                SET deleted_by = 'HALID', deleted_dt = '${getCurrentDateTime()}'
                 WHERE ledger_itemcheck_id = ${deleteItemCheck.ledger_itemcheck_id};            
             `
             const deleted = await queryCustom(q)
 
             let deleteSchedule = `
                 UPDATE tb_r_schedules
-                SET deleted_by = 'HALID'
+                SET deleted_by = 'HALID', deleted_dt = '${getCurrentDateTime()}'
                 WHERE ledger_itemcheck_id = ${deleteItemCheck.ledger_itemcheck_id}
             `
 
             const deleting = await queryCustom(deleteSchedule)
 
-            let deleteItem = `
-                UPDATE tb_m_itemchecks
-                SET deleted_by = 'HALID'
-                WHERE itemcheck_id = ${deleteItemCheck.itemcheck_id}
-            `
+            // let deleteItem = `
+            //     UPDATE tb_m_itemchecks
+            //     SET deleted_by = 'HALID' , deleted_dt = '${getCurrentDateTime()}'
+            //     WHERE itemcheck_id = ${deleteItemCheck.itemcheck_id}
+            // `
 
-            const deletedItem = await queryCustom(deleteItem)
+            // const deletedItem = await queryCustom(deleteItem)
             
             response.success(res, 'data deleted', deleted)
         } catch (error) {

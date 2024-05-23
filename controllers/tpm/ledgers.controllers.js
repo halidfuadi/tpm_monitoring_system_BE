@@ -32,48 +32,26 @@ function getCurrentDateTime() {
 module.exports = {
     getLedgers: async (req, res) => {
         try {
+            let data = queryHandler(req.query)
+            console.log(data.length);
             let line_id = req.query.line_id
             let machine_id = req.query.machine_id
             console.log(line_id, machine_id);
-            if(line_id!='null' && machine_id!='null'){
+            if(line_id!='null' && machine_id!='null' && data.length != 0){
                 let line_id = await uuidToId(table.tb_m_lines, 'line_id', req.query.line_id)            
                 let machine_id = await uuidToId(table.tb_m_machines, 'machine_id', req.query.machine_id)
                 whereCond = `AND tml.line_id=${line_id} AND tmm.machine_id=${machine_id}`
-            }else if(line_id != 'null' && machine_id == 'null'){
+            }else if(line_id != 'null' && machine_id == 'null' && data.length != 0){
                 let line_id = await uuidToId(table.tb_m_lines, 'line_id', req.query.line_id)            
                 whereCond = `AND tml.line_id=${line_id}`
-            }else if(line_id == 'null' && machine_id != 'null'){
+            }else if(line_id == 'null' && machine_id != 'null' && data.length != 0){
                 let machine_id = await uuidToId(table.tb_m_machines, 'machine_id', req.query.machine_id)
                 whereCond = `AND tmm.machine_id=${machine_id}`
-            }else if(machine_id == 'null' && line_id == 'null' || req.query < 0){
+            }else if(data.length == 0){
                 whereCond = ``
             }
-            console.log(whereCond);
-            // let q = `
-            // SELECT
-            //     trli.ledger_id,
-            //     tmm.machine_nm,
-            //     tml.line_id,
-            //     tml.line_nm,
-            //     trli.approval
-            //     -- COUNT(itemcheck_id)::int AS num_item_checks
-            // FROM
-            //     tb_m_machines tmm 
-            // RIGHT JOIN
-            //     tb_r_ledger_itemchecks trli  ON trli.ledger_id = tmm.machine_id	
-            // JOIN
-            //     tb_m_lines tml ON tml.line_id = tmm.line_id 
-            // WHERE
-            //     trli.approval = false ${whereCond}
-            // GROUP BY
-            //     trli.ledger_id, 
-            //     tmm.machine_nm,
-            //     tml.line_id, 
-            //     tml.line_nm,
-            //     trli.approval
-            // ORDER BY 
-            //     trli.ledger_id
-            // `
+
+            console.log(whereCond);            
 
             let q = `
             SELECT
@@ -122,9 +100,9 @@ module.exports = {
                 tmi.method_check,
                 tmi.mp,
                 trli.ledger_itemcheck_id,
-                COALESCE(CAST(trs.plan_check_dt AS DATE), '0001-01-01') AS plan_check_dt,
-                tmi.itemcheck_id,
-                trs.schedule_id 
+                -- COALESCE(CAST(trs.plan_check_dt AS DATE), '0001-01-01') AS plan_check_dt,
+                tmi.itemcheck_id
+                -- trs.schedule_id 
             FROM 
                 tb_r_ledger_itemchecks trli 
             JOIN 
@@ -135,8 +113,8 @@ module.exports = {
                 tb_m_itemchecks tmi ON trli.itemcheck_id = tmi.itemcheck_id 
             JOIN 
                 tb_m_periodics tmp ON tmi.period_id = tmp.period_id 
-            LEFT JOIN 
-                tb_r_schedules trs ON trli.ledger_itemcheck_id = trs.ledger_itemcheck_id
+            -- LEFT JOIN 
+            --    tb_r_schedules trs ON trli.ledger_itemcheck_id = trs.ledger_itemcheck_id
             WHERE 
                 tml.ledger_id = ${idLedger} AND trli.deleted_by IS NULL
             ORDER BY 
