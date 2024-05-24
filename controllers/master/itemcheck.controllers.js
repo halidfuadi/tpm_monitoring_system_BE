@@ -109,7 +109,7 @@ module.exports = {
                 duration_new: +newData.duration,
                 val_periodic_old: oldData.val_periodic,
                 val_periodic_new: +newData.val_periodic,
-                initial_date: Intl.DateTimeFormat('en-US', {timeZone: 'Asia/Jakarta', dateStyle: 'full', timeStyle: 'long'}).format(oldData.initial_date),
+                // initial_date: Intl.DateTimeFormat('en-US', {timeZone: 'Asia/Jakarta', dateStyle: 'full', timeStyle: 'long'}).format(oldData.initial_date),
                 initial_date: oldData.initial_date,
                 created_by: 'SYSTEM',
                 created_dt: getCurrentDateTime(),
@@ -120,11 +120,13 @@ module.exports = {
                 standard_measurement_new: newData.standard_measurement,
                 approval: false,
                 uuid: v4(),
-                last_check_dt: Intl.DateTimeFormat('en-US', {timeZone: 'Asia/Jakarta', dateStyle: 'full', timeStyle: 'long'}).format(oldData.last_check_dt),
+                // last_check_dt: Intl.DateTimeFormat('en-US', {timeZone: 'Asia/Jakarta', dateStyle: 'full', timeStyle: 'long'}).format(oldData.last_check_dt),
+                last_check_dt: oldData.last_check_dt,
                 itemcheck_std_id: oldData.itemcheck_std_id,
                 ledger_id: newData.ledger_id            
             }
 
+            console.log("HERE==================================");
             console.log(joinData);
 
             const insert = await queryPOST(table.tb_r_ledger_changes, joinData)

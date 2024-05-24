@@ -99,6 +99,7 @@ module.exports = {
                 tmi.standard_measurement, 
                 tmi.method_check,
                 tmi.mp,
+                tmi.period_id,
                 trli.ledger_itemcheck_id,
                 -- COALESCE(CAST(trs.plan_check_dt AS DATE), '0001-01-01') AS plan_check_dt,
                 tmi.itemcheck_id
