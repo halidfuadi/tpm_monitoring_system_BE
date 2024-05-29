@@ -4,6 +4,7 @@ const response = require('../../helpers/response')
 const { groupFunction } = require('../../functions/groupFunction')
 const queryHandler = require('../queryhandler.function')
 const getLastIdData = require('../../helpers/getLastIdData')
+const getCurrentDateTime = require('../../functions/getCurrentDateTime')
 const { v4 } = require('uuid')
 const moment = require('moment')
 
@@ -20,21 +21,30 @@ module.exports = {
         try {
             let filter = queryHandler(req.query)
             console.log(filter);
-            let dataParts = queryGET(tb_m_spareparts)
+            let dataParts = queryGET(table.tb_r_ledger_spareparts, `WHERE ${filter[0]}`)
             response.success(res, dataParts)
-
         } catch (error) {
             console.log(error);
             response.failed(res, "failed get sparepart data")
         }
     },
+
     sparepartAdd: async (req, res) => {
         try {
-            let created_dt = moment().format('YYYY-MM-DD');
-            req.body.created_dt = created_dt;
-            await queryPOST(table.tb_m_spareparts, req.body);
-            response.success(res, 'sucess add data')
+            let data = req.query
 
+            let dataSparepart = {
+                sparepart_id: getLastIdData(table.tb_m_spareparts, 'sparepart_id'),
+                sparepart_nm: data.sparepart_nm,
+                stock: data.stock,
+                created_dt: getCurrentDateTime(),
+                created_by: 'USER',
+                changed_dt: getCurrentDateTime(),
+                changed_by: 'USER',
+            }
+
+            await queryPOST(table.tb_m_spareparts, dataSparepart);
+            response.success(res, 'sucess add data')
         } catch (error) {
             console.log(error);
             response.failed(res, 
@@ -67,6 +77,14 @@ module.exports = {
         } catch (error) {
             console.log(error);
             response.failed(res, "failed delete sparepart data, please check your body :) ")
+        }
+    },
+
+    itemSparepartAdd: async (req, res) => {
+        try {
+            
+        } catch (error) {
+            
         }
     }
 
