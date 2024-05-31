@@ -7,6 +7,7 @@ const queryHandler = require('../queryhandler.function')
 const getLastIdData = require('../../helpers/getLastIdData')
 const { v4 } = require('uuid')
 const { uuid } = require('uuidv4')
+const {getCurrentDateTime} = require('../../functions/getCurrentDateTime')
 
 async function uuidToId(table, col, uuid) {
     console.log(`SELECT ${col} FROM ${table} WHERE uuid = '${uuid}'`);
@@ -14,20 +15,6 @@ async function uuidToId(table, col, uuid) {
     let rawId = await queryGET(table, `WHERE uuid = '${uuid}'`, [col])
     return rawId[0][col]
 }
-
-function getCurrentDateTime() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-    const milliseconds = String(now.getMilliseconds()).padStart(3, '0');
-
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds}`;
-}
-
 
 module.exports = {
     getLedgers: async (req, res) => {

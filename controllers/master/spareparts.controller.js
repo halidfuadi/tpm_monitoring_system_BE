@@ -4,7 +4,7 @@ const response = require('../../helpers/response')
 const { groupFunction } = require('../../functions/groupFunction')
 const queryHandler = require('../queryhandler.function')
 const getLastIdData = require('../../helpers/getLastIdData')
-const getCurrentDateTime = require('../../functions/getCurrentDateTime')
+const {getCurrentDateTime} = require('../../functions/getCurrentDateTime')
 const { v4 } = require('uuid')
 const moment = require('moment')
 

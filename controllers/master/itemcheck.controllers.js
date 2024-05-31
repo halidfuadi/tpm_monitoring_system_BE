@@ -9,7 +9,7 @@ const { v4 } = require('uuid');
 const idToUuid = require('../../helpers/idToUuid');
 const { checkout } = require('../../app');
 const cronGeneratorSchedule = require('../../functions/cronGeneratorSchedule');
-const getCurrentDateTime = require('../../functions/getCurrentDateTime')
+const {getCurrentDateTime} = require('../../functions/getCurrentDateTime')
 
 async function uuidToId(table, col, uuid) {
     console.log(`SELECT ${col} FROM ${table} WHERE uuid = '${uuid}'`);
@@ -66,6 +66,9 @@ module.exports = {
                 itemcheck_std_id: 1,
                 standard_measurement: itemCheckData.standard_measurement,
                 incharge_id: 0,
+                condition: 'Waiting',
+                upper_limit: +itemCheckData.upper_limit,
+                lower_limit: +itemCheckData.lower_limit
             }
             console.log(newItem);
             const item = await queryPOST(table.tb_r_ledger_added, newItem)
@@ -178,7 +181,9 @@ module.exports = {
                 changed_by: 'USER',
                 changed_dt: getCurrentDateTime(),
                 incharge_id: 0,
-                standard_measurement: data.standard_measurement_new
+                standard_measurement: data.standard_measurement_new,
+                upper_limit: +data.upper_limit,
+                lower_limit: +data.lower_limit
             }
 
             const updated = await queryPUT(table.tb_m_itemchecks, newData, `WHERE itemcheck_id = ${data.itemcheck_id}`)            
@@ -238,11 +243,12 @@ module.exports = {
                 SET
                     approval = true,
                     itemcheck_id = ${item.itemcheck_id},
-                    ledger_itemcheck_id = ${ledgerItem.ledger_itemcheck_id}
+                    ledger_itemcheck_id = ${ledgerItem.ledger_itemcheck_id},
+                    condition = 'Approved'
                 WHERE ledger_added_id = ${data.ledger_added_id}
             `    
             const updateTRLA = await queryCustom(q)
-            await cronGeneratorSchedule()    
+            cronGeneratorSchedule()    
 
         } catch (error) {
             
