@@ -221,7 +221,9 @@ module.exports = {
                 incharge_id: 0,
                 last_check_dt: data.last_check_dt,
                 itemcheck_std_id: data.itemcheck_std_id,
-                standard_measurement: data.standard_measurement
+                standard_measurement: data.standard_measurement,
+                lower_limit: data.lower_limit,
+                upper_limit: data.upper_limit
             }
             const updateItemcheck = await queryPOST(table.tb_m_itemchecks, item)
     
@@ -283,6 +285,36 @@ module.exports = {
             response.success(res, 'data deleted', deleted)
         } catch (error) {
             console.log(error);
+        }
+    },
+    denyAdded: async(req, res) => {
+        try {
+            let deny = req.body
+            let q = `
+                UPDATE tb_r_ledger_added
+                SET approval = TRUE, condition = 'Denied'
+                WHERE ledger_added_id = ${deny.ledger_added_id}
+            `
+            const denied = await queryCustom(q)
+            response.success(res, 'Request Denied', denied)
+        } catch (error) {
+            console.log(error);
+            response.error(res, 'Error')
+        }
+    },
+    denyEdit: async(req, res) => {
+        try {
+            let deny = req.body
+            let q = `
+                UPDATE tb_r_ledger_changes
+                SET approval = TRUE, condition = 'Denied'
+                WHERE ledger_changes_id = ${deny.ledger_changes_id}
+            `
+            const denied = await queryCustom(q)
+            response.success(res, 'Request Denied', denied)
+        } catch (error) {
+            console.log(error);
+            response.error(res, 'Error')
         }
     }
 
