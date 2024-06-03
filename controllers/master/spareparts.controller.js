@@ -21,8 +21,9 @@ module.exports = {
         try {
             let filter = queryHandler(req.query)
             console.log(filter);
-            let dataParts = queryGET(table.tb_r_ledger_spareparts, `WHERE ${filter[0]}`)
-            response.success(res, dataParts)
+            let dataParts = (await queryGET(table.tb_m_spareparts))
+            console.log(dataParts);
+            response.success(res, "success", dataParts)
         } catch (error) {
             console.log(error);
             response.failed(res, "failed get sparepart data")

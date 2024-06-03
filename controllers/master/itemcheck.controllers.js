@@ -117,9 +117,9 @@ module.exports = {
                 last_check_dt: oldData.last_check_dt,
                 itemcheck_std_id: oldData.itemcheck_std_id,
                 ledger_id: newData.ledger_id,
-                upper_limit_old: oldData.upper_limit,
+                upper_limit_old: oldData.upper_limit !== null ? oldData.upper_limit : 0,
                 upper_limit_new: +newData.upper_limit,
-                lower_limit_old: oldData.lower_limit,
+                lower_limit_old: oldData.lower_limit !== null ? oldData.lower_limit : 0,
                 lower_limit_new: +newData.lower_limit        
             }
 
