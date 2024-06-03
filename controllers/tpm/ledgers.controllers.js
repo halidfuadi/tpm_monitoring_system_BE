@@ -78,6 +78,7 @@ module.exports = {
             let idLedger = Number(req.query.ledger_id);
             let q = `
             SELECT 
+                tmi.*,
                 tmm.machine_nm, 
                 tmi.itemcheck_nm, 
                 tmi.val_periodic, 

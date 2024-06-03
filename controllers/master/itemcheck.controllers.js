@@ -116,7 +116,11 @@ module.exports = {
                 // last_check_dt: Intl.DateTimeFormat('en-US', {timeZone: 'Asia/Jakarta', dateStyle: 'full', timeStyle: 'long'}).format(oldData.last_check_dt),
                 last_check_dt: oldData.last_check_dt,
                 itemcheck_std_id: oldData.itemcheck_std_id,
-                ledger_id: newData.ledger_id            
+                ledger_id: newData.ledger_id,
+                upper_limit_old: oldData.upper_limit,
+                upper_limit_new: +newData.upper_limit,
+                lower_limit_old: oldData.lower_limit,
+                lower_limit_new: +newData.lower_limit        
             }
 
             console.log("HERE==================================");
@@ -182,8 +186,8 @@ module.exports = {
                 changed_dt: getCurrentDateTime(),
                 incharge_id: 0,
                 standard_measurement: data.standard_measurement_new,
-                upper_limit: +data.upper_limit,
-                lower_limit: +data.lower_limit
+                upper_limit: +data.upper_limit_new,
+                lower_limit: +data.lower_limit_new
             }
 
             const updated = await queryPUT(table.tb_m_itemchecks, newData, `WHERE itemcheck_id = ${data.itemcheck_id}`)            
@@ -191,7 +195,6 @@ module.exports = {
                 approval : true
             }
             const history = await queryPUT(table.tb_r_ledger_changes, approve, `WHERE ledger_changes_id = ${data.ledger_changes_id}`)
-            cronGeneratorSchedule()
             response.success(res, 'Success to Update Data', updated)
 
         } catch (error) {
