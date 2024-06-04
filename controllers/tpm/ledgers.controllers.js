@@ -90,7 +90,8 @@ module.exports = {
                 tmi.period_id,
                 trli.ledger_itemcheck_id,
                 -- COALESCE(CAST(trs.plan_check_dt AS DATE), '0001-01-01') AS plan_check_dt,
-                tmi.itemcheck_id
+                tmi.itemcheck_id,
+                tmn.incharge_nm
                 -- trs.schedule_id 
             FROM 
                 tb_r_ledger_itemchecks trli 
@@ -101,7 +102,9 @@ module.exports = {
             JOIN 
                 tb_m_itemchecks tmi ON trli.itemcheck_id = tmi.itemcheck_id 
             JOIN 
-                tb_m_periodics tmp ON tmi.period_id = tmp.period_id 
+                tb_m_periodics tmp ON tmi.period_id = tmp.period_id
+            JOIN
+                tb_m_incharge tmn ON tmi.incharge_id = tmn.incharge_id
             -- LEFT JOIN 
             --    tb_r_schedules trs ON trli.ledger_itemcheck_id = trs.ledger_itemcheck_id
             WHERE 
