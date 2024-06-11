@@ -6,6 +6,7 @@ const { groupFunction } = require('../../functions/groupFunction')
 const queryHandler = require('../queryhandler.function')
 const getLastIdData = require('../../helpers/getLastIdData')
 const { v4 } = require('uuid')
+const { getRounds } = require('bcryptjs')
 let timestampDay = 24 * 60 * 60 * 1000
 
 async function uuidToId(table, col, uuid) {
@@ -264,23 +265,32 @@ module.exports = {
             containerFilter.length > 0 ? containerFilter = containerFilter.join(" AND ") : containerFilter = "";
             
             let q = `
-                SELECT line_nm, COUNT(*) AS item_count
+                SELECT line_nm, 
+                COUNT(*) AS item_count,
+                SUM(duration) AS total_duration
                 FROM v_schedules_monthly vsm
                 WHERE ${containerFilter}
                 GROUP BY line_nm;                        
             `            
             cons = (await queryCustom(q)).rows
             
-            let series = [{
-                name: "Total Item",
-                type: "column",
-                data: [],
-            }];
+            let series = [
+                {
+                    name: "Total Item",
+                    type: "column",
+                    data: [],
+                },
+                {
+                    name: "Total Duration",
+                    type: "column",
+                    data: []
+                }
+            ];
             let labels = [];
 
             cons.forEach(cons => {
                 series[0].data.push(cons.item_count ?? 0);
-                // series[1].data.push(cons.status_nm);
+                series[1].data.push(Math.round((cons.total_duration ?? 0)/60));
                 labels.push(cons.line_nm);
                 // console.log(schedule);
             });
