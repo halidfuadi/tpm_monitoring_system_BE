@@ -1,14 +1,11 @@
-const { duration } = require('moment');
 const table = require('../../config/table');
-const scheduleGeneratorNewItem = require('../../functions/scheduleGenerator');
 const getLastIdData = require('../../helpers/getLastIdData');
 const { queryPOST, queryPUT, queryGET, queryCustom } = require('../../helpers/query')
 const response = require('../../helpers/response')
 const queryHandler = require('../queryhandler.function')
 const { v4 } = require('uuid');
 const idToUuid = require('../../helpers/idToUuid');
-const { checkout } = require('../../app');
-const cronGeneratorSchedule = require('../../functions/cronGeneratorSchedule');
+const {cronGeneratorSchedule} = require('../../functions/cronGeneratorSchedule');
 const {getCurrentDateTime} = require('../../functions/getCurrentDateTime')
 
 async function uuidToId(table, col, uuid) {
@@ -19,6 +16,44 @@ async function uuidToId(table, col, uuid) {
 }
 
 module.exports = {
+    getItemchecks: async(req, res) => {
+        try {
+            let containerFilter = queryHandler(req.query)
+            console.log(containerFilter);
+            containerFilter.length > 0 ? containerFilter = 'WHERE tmi.' + containerFilter + " AND " : containerFilter = "WHERE"
+            let q = `
+                SELECT
+                    tmi.itemcheck_id,
+                    tmi.itemcheck_nm,
+                    tmm.machine_nm,
+                    trli.ledger_itemcheck_id ,
+                    tmm.machine_id,
+                    trli.ledger_id,
+                    tmi.val_periodic,
+                    tmp.period_nm
+                FROM
+                    tb_r_ledger_itemchecks trli 
+                JOIN
+                    tb_m_itemchecks tmi ON tmi.itemcheck_id = trli.itemcheck_id
+                JOIN
+                    tb_m_ledgers tml ON tml.ledger_id = trli.ledger_id
+                JOIN
+                    tb_m_machines tmm ON tmm.machine_id = tml.machine_id
+                JOIN
+                    tb_m_periodics tmp ON tmi.period_id = tmp.period_id
+                
+                ${containerFilter} trli.deleted_by IS NULL AND trli.deleted_dt IS NULL
+                ORDER BY
+                    tmi.itemcheck_nm, tmm.machine_nm;                
+            `
+            console.log(q);
+            const itemchecks = (await queryCustom(q)).rows
+            response.success(res, 'success to get itemchecks', itemchecks)
+        } catch (error) {
+            console.error(error)
+            response.failed(res, 'Error to get itemchecks')
+        }
+    },
     getItemcheck: async(req, res) => {
         try {
             let containerFilter = queryHandler(req.query)
@@ -171,8 +206,7 @@ module.exports = {
     },
     approvedItem: async(req, res) =>{
         try {
-            let data = req.body
-            
+            let data = req.body            
             let newData = {
                 period_id: data.period_id_new,
                 uuid: await idToUuid(table.tb_m_itemchecks, 'itemcheck_id', data.itemcheck_id),
@@ -190,7 +224,6 @@ module.exports = {
                 upper_limit: +data.upper_limit_new,
                 lower_limit: +data.lower_limit_new
             }
-
             const updated = await queryPUT(table.tb_m_itemchecks, newData, `WHERE itemcheck_id = ${data.itemcheck_id}`)            
             let approve = {
                 approval : true
@@ -226,8 +259,8 @@ module.exports = {
                 last_check_dt: data.last_check_dt,
                 itemcheck_std_id: data.itemcheck_std_id,
                 standard_measurement: data.standard_measurement,
-                lower_limit: data.lower_limit,
-                upper_limit: data.upper_limit
+                lower_limit: +data.lower_limit || null,
+                upper_limit: +data.upper_limit || null
             }
             const updateItemcheck = await queryPOST(table.tb_m_itemchecks, item)
     
@@ -257,15 +290,17 @@ module.exports = {
             cronGeneratorSchedule()    
 
         } catch (error) {
-            
+            console.log(error);
+            response.error(res, error)
         }
     },
     deleteItemCheck: async(req, res) => {
         try {
             let deleteItemCheck = req.body
+            console.log(deleteItemCheck);
             let q = `
                 UPDATE tb_r_ledger_itemchecks
-                SET deleted_by = 'HALID', deleted_dt = '${getCurrentDateTime()}'
+                SET deleted_by = 'HALID', deleted_dt = '${getCurrentDateTime()}', reasons = '${deleteItemCheck.reason}'
                 WHERE ledger_itemcheck_id = ${deleteItemCheck.ledger_itemcheck_id};            
             `
             const deleted = await queryCustom(q)
@@ -275,16 +310,24 @@ module.exports = {
                 SET deleted_by = 'HALID', deleted_dt = '${getCurrentDateTime()}'
                 WHERE ledger_itemcheck_id = ${deleteItemCheck.ledger_itemcheck_id}
             `
-
             const deleting = await queryCustom(deleteSchedule)
 
-            // let deleteItem = `
-            //     UPDATE tb_m_itemchecks
-            //     SET deleted_by = 'HALID' , deleted_dt = '${getCurrentDateTime()}'
-            //     WHERE itemcheck_id = ${deleteItemCheck.itemcheck_id}
-            // `
+            let deleteHistory = {
+                ledger_deleted_id: await getLastIdData(table.tb_r_ledger_deleted),
+                uuid: v4(),
+                ledger_id: deleteItemCheck.ledger_id,
+                itemcheck_id: deleteItemCheck.itemcheck_id,
+                created_by: 'USER',
+                created_dt: getCurrentDateTime(),
+                changed_by: 'USER',
+                changed_dt: getCurrentDateTime(),
+                last_check_dt: deleteItemCheck.last_check_dt,
+                reasons: deleteItemCheck.reason
+            }
 
-            // const deletedItem = await queryCustom(deleteItem)
+            console.log(deleteHistory);
+
+            const set = await queryPOST(table.tb_r_ledger_deleted, deleteHistory)
             
             response.success(res, 'data deleted', deleted)
         } catch (error) {

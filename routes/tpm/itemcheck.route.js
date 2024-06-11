@@ -1,8 +1,8 @@
 var express = require('express');
-const { getItemcheck, addItemCheck, editItemCheck, deleteItemCheck, approveItemCheck, getUpdate, approvedItem, approvedNewItem, denyAdded, denyEdit } = require('../../controllers/master/itemcheck.controllers');
+const { getItemcheck, addItemCheck, editItemCheck, deleteItemCheck, approveItemCheck, getUpdate, approvedItem, approvedNewItem, denyAdded, denyEdit, getItemchecks } = require('../../controllers/master/itemcheck.controllers');
 var router = express.Router();
 
-router.get('/search', getItemcheck)
+router.get('/search', getItemchecks)
 router.post('/addItemCheck', addItemCheck) //add item check parameter nya ledger id, lalu datanya yang akan di add disimpan di body
 router.post('/editItemCheck', editItemCheck) ////edit item check parameter nya ledger id, lalu datanya yang akan di add disimpan di body
 router.delete('/deleteItemCheck', deleteItemCheck)

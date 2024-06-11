@@ -30,6 +30,27 @@ module.exports = {
         }
     },
 
+    sparepartsGetDetail: async (req, res) => {
+        try {
+            let filter = req.query
+            console.log(filter);
+            let q = `
+                select 
+                tms.*
+                from tb_r_ledger_spareparts trls
+                join tb_m_spareparts tms on tms.sparepart_id = trls.sparepart_id
+                where trls.ledger_id = ${filter.ledger_id}
+            `
+
+            let dataSparepart = (await queryCustom(q)).rows
+            console.log(dataSparepart);
+            response.success(res, "success to get data", dataSparepart)
+        } catch (error) {
+            console.log(error);
+            response.failed(res, "failed get sparepart data")
+        }
+    },
+
     sparepartAdd: async (req, res) => {
         try {
             let data = req.query

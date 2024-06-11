@@ -28,6 +28,7 @@ const table = {
     tb_r_ledger_spareparts: 'tb_r_ledger_spareparts',
     tb_r_ledger_changes: 'tb_r_ledger_changes',
     tb_r_ledger_added: 'tb_r_ledger_added',
+    tb_r_ledger_deleted: 'tb_r_ledger_deleted'
 }
 
 

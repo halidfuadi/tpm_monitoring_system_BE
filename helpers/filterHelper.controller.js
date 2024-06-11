@@ -28,7 +28,7 @@ module.exports = {
           is_query
             ? `AND line_id = (SELECT line_id FROM tb_m_lines WHERE uuid = '${req.body.line_id}')`
             : ""
-        } ORDER BY created_dt ASC`,
+        } ORDER BY machine_nm ASC`,
         ["uuid as machine_id", "machine_nm"]
       );
       response.success(res, "Success to get machine", machine);
@@ -39,7 +39,7 @@ module.exports = {
   },
   lineTpmOpt: async (req, res) => {
     try {
-      let line = await queryGET(table.tb_m_lines, "ORDER BY created_dt ASC", [
+      let line = await queryGET(table.tb_m_lines, "ORDER BY line_nm ASC", [
         "uuid as line_id",
         "line_nm",
       ]);
@@ -47,6 +47,19 @@ module.exports = {
     } catch (error) {
       console.log(error);
       response.failed(res, "Error to get line");
+    }
+  },
+  itemcheckTpmOpt: async (req, res) => {
+    try {
+      let itemcheck = await queryGET(table.tb_m_itemchecks, "ORDER BY created_dt ASC", [
+        "uuid",
+        "itemcheck_nm",
+      ]);
+      console.log(itemcheck);
+      response.success(res, "Success to get itemcheck", itemcheck);
+    } catch (error) {
+      console.log(error);
+      response.failed(res, "Error to get itemcheck");
     }
   },
 };
