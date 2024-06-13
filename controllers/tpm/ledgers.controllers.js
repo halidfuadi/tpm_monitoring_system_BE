@@ -71,8 +71,6 @@ module.exports = {
             response.failed(res, 'Error to get schedules')
         }
     },
-
-
     getDetail: async(req, res) => {
         try {
             let idLedger = Number(req.query.ledger_id);

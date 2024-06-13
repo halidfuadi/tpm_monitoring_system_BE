@@ -102,9 +102,18 @@ module.exports = {
                 standard_measurement: itemCheckData.standard_measurement,
                 incharge_id: 0,
                 condition: 'Waiting',
-                upper_limit: +itemCheckData.upper_limit,
-                lower_limit: +itemCheckData.lower_limit
+                // upper_limit: +itemCheckData.upper_limit,
+                // lower_limit: +itemCheckData.lower_limit
             }
+
+            if (itemCheckData.upper_limit) {
+                newItem.upper_limit = +itemCheckData.upper_limit;
+            }
+    
+            if (itemCheckData.lower_limit) {
+                newItem.lower_limit = +itemCheckData.lower_limit;
+            }
+
             console.log(newItem);
             const item = await queryPOST(table.tb_r_ledger_added, newItem)
 
@@ -258,10 +267,16 @@ module.exports = {
                 incharge_id: 0,
                 last_check_dt: data.last_check_dt,
                 itemcheck_std_id: data.itemcheck_std_id,
-                standard_measurement: data.standard_measurement,
-                lower_limit: +data.lower_limit || null,
-                upper_limit: +data.upper_limit || null
+                standard_measurement: data.standard_measurement,                
             }
+            if(data.lower_limit){
+                item.lower_limit= +data.lower_limit
+            }
+
+            if(data.upper_limit){
+                item.upper_limit= +data.upper_limit
+            }
+
             const updateItemcheck = await queryPOST(table.tb_m_itemchecks, item)
     
             let ledgerItem = {
@@ -287,7 +302,7 @@ module.exports = {
                 WHERE ledger_added_id = ${data.ledger_added_id}
             `    
             const updateTRLA = await queryCustom(q)
-            cronGeneratorSchedule()    
+            response.success(res, "Succes to add data", updateTRLA)
 
         } catch (error) {
             console.log(error);

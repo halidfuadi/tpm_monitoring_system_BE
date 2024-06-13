@@ -125,8 +125,10 @@ async function execNormal(res, data) {
             history_check_id: lastIdHistoryExec,
             schedule_id: schedule_id,
             uuid: v4(),
-            checked_val: data.checked_val,
-            act_measurement: +data.actual_measurement
+            checked_val: data.checked_val,            
+        }
+        if(data.actual_measurement){
+            objCheckedExec.act_measurement = +data.actual_measurement
         }
         const updtItemcheckLastDt = {
             last_check_dt: data.actual_check_dt      

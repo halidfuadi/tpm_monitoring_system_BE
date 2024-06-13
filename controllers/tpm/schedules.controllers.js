@@ -29,7 +29,7 @@ module.exports = {
             let containerFilter = queryHandler(req.query)
 
             containerFilter.length > 0 ? containerFilter = containerFilter.join(" AND ") : containerFilter = ""
-            let schedulesData = await queryGET(table.v_schedules_monthly, `WHERE ${containerFilter} ORDER BY schedule_id`)            
+            let schedulesData = await queryGET(table.v_schedules_monthly, `WHERE ${containerFilter} ORDER BY machine_nm`)            
             let mapSchedulesPics = await schedulesData.map(async schedule => {
                 let schedule_id = await uuidToId(table.tb_r_schedules, 'schedule_id', schedule.schedule_id) //table, col, uuid
                 let q = `SELECT 
@@ -55,7 +55,6 @@ module.exports = {
             response.failed(res, 'Error to get today activities')
         }
     },
-
     getTodayActivities: async (req, res) => {
         try {
             /*
@@ -190,7 +189,6 @@ module.exports = {
             response.failed(res, 'Error to get visualization of item check')
         }
     },
-
     getVisualizeStatus: async (req, res) => {
         try {
             let containerFilter = queryHandler(req.body);
