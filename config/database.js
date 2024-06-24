@@ -6,7 +6,7 @@ pg.types.setTypeParser(1082, function (stringValue) {
 const config = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: "tpm_system",
+  database: "tpm_backup",
   port: process.env.DB_PORT,
   host: process.env.DB_HOST,
   ssl: false,

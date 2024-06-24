@@ -93,36 +93,86 @@ async function cronGeneratorDaily() {
   });
 }
 
+// async function cronGeneratorSchedule() {
+//   // await cronGeneratorDaily();
+//   let itemchecks = await queryGET(
+//     table.v_generator_itemchecks,
+//     ` WHERE deleted_dt IS NULL AND period_nm <> 'DAY'`
+//   );
+//   let successCreatedCount = 0;
+//   let mapItemCheck = await itemchecks.map(async (itemcheck, i) => {
+//     // console.log(itemcheck);
+//     const timemilisecOffset = 1000 * 60 * 60 * 24;
+//     const forecaseSubsOneMonth = timemilisecOffset * 30; // for advance generator one month before
+//     let offsettime =
+//       new Date(itemcheck.last_check_dt).getTime() +
+//       timemilisecOffset * +itemcheck.val_periodic * +itemcheck.prec_val;
+//     let timeLastCheck = new Date().getTime() - forecaseSubsOneMonth;
+//     const isDateGB = offsettime >= timeLastCheck; // GB = Greatherthen Before
+//     if (isDateGB) {
+//       const formattedDate = moment(offsettime).format("YYYY-MM-DD");
+//       // console.log(formattedDate);
+//       let scheduleData = await queryGET(
+//         table.tb_r_schedules,
+//         `WHERE plan_check_dt = '${formattedDate}' AND actual_check_dt IS NULL AND ledger_itemcheck_id = '${itemcheck.ledger_itemcheck_id}'`
+//       );
+//       // console.log(scheduleData);
+//       const scheduleNotYetCreated = scheduleData.length == 0;
+//       if (itemcheck.itemcheck_id == 831) {
+//         console.log(scheduleData);
+//         console.log(itemcheck);
+//         console.log(offsettime, timeLastCheck);
+//       }
+//       if (scheduleNotYetCreated) {
+//         let newSchedule = {
+//           schedule_id:
+//             (await getLastIdData(table.tb_r_schedules, "schedule_id")) + i,
+//           uuid: v4(),
+//           ledger_itemcheck_id: itemcheck.ledger_itemcheck_id,
+//           plan_duration: itemcheck.duration,
+//           plan_check_dt: formattedDate,
+//           status_id: 0,
+//           created_by: "GENERATOR",
+//         };
+//         const resp = await queryPOST(table.tb_r_schedules, newSchedule);
+//         console.log("DATA INSERTED");
+//         successCreatedCount += 1;
+//         return successCreatedCount;
+//       }
+//     }
+//   });
+//   const waitmap = await Promise.all(mapItemCheck);
+//   if (waitmap) console.log(`DATA INSERTED TOTAL: ${successCreatedCount}`);
+// }
+
 async function cronGeneratorSchedule() {
-  // await cronGeneratorDaily();
   let itemchecks = await queryGET(
     table.v_generator_itemchecks,
     ` WHERE deleted_dt IS NULL AND period_nm <> 'DAY'`
   );
   let successCreatedCount = 0;
+
   let mapItemCheck = await itemchecks.map(async (itemcheck, i) => {
-    // console.log(itemcheck);
     const timemilisecOffset = 1000 * 60 * 60 * 24;
-    const forecaseSubsOneMonth = timemilisecOffset * 30; // for advance generator one month before
-    let offsettime =
-      new Date(itemcheck.last_check_dt).getTime() +
-      timemilisecOffset * +itemcheck.val_periodic * +itemcheck.prec_val;
-    let timeLastCheck = new Date().getTime() - forecaseSubsOneMonth;
-    const isDateGB = offsettime >= timeLastCheck; // GB = Greatherthen Before
-    if (isDateGB) {
+    const oneYearMillisec = timemilisecOffset * 365; // For a year
+    const fiveYearsMillisec = oneYearMillisec * 5; // For five years
+    let initialStartTime = new Date(itemcheck.last_check_dt).getTime();
+    let currentTime = new Date().getTime();
+    let endTime = currentTime + fiveYearsMillisec; // Five years from now
+
+    // Loop for each period within the next 5 years starting from initial_start_dt
+    while (initialStartTime <= endTime) {
+      let offsettime = initialStartTime +
+        timemilisecOffset * +itemcheck.val_periodic * +itemcheck.prec_val;
       const formattedDate = moment(offsettime).format("YYYY-MM-DD");
-      // console.log(formattedDate);
+
+      // Check if the schedule for this date already exists
       let scheduleData = await queryGET(
         table.tb_r_schedules,
         `WHERE plan_check_dt = '${formattedDate}' AND actual_check_dt IS NULL AND ledger_itemcheck_id = '${itemcheck.ledger_itemcheck_id}'`
       );
-      // console.log(scheduleData);
-      const scheduleNotYetCreated = scheduleData.length == 0;
-      if (itemcheck.itemcheck_id == 831) {
-        console.log(scheduleData);
-        console.log(itemcheck);
-        console.log(offsettime, timeLastCheck);
-      }
+
+      const scheduleNotYetCreated = scheduleData.length === 0;
       if (scheduleNotYetCreated) {
         let newSchedule = {
           schedule_id:
@@ -134,16 +184,21 @@ async function cronGeneratorSchedule() {
           status_id: 0,
           created_by: "GENERATOR",
         };
+
         const resp = await queryPOST(table.tb_r_schedules, newSchedule);
-        console.log("DATA INSERTED");
         successCreatedCount += 1;
-        return successCreatedCount;
       }
+
+      // Move to the next period
+      initialStartTime += timemilisecOffset * +itemcheck.val_periodic * +itemcheck.prec_val;
     }
   });
+
   const waitmap = await Promise.all(mapItemCheck);
   if (waitmap) console.log(`DATA INSERTED TOTAL: ${successCreatedCount}`);
 }
+
+
 
 // module.exports = { cronGeneratorSchedule, cronGeneratorDaily };
 module.exports = { cronGeneratorSchedule };
