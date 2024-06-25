@@ -29,7 +29,7 @@ module.exports = {
             let containerFilter = queryHandler(req.query)
 
             containerFilter.length > 0 ? containerFilter = containerFilter.join(" AND ") : containerFilter = ""
-            let schedulesData = await queryGET(table.v_schedules_monthly, `WHERE ${containerFilter} ORDER BY machine_nm`)            
+            let schedulesData = await queryGET(table.v_schedules_monthly, `WHERE ${containerFilter} AND deleted_dt IS NULL ORDER BY machine_nm`)            
             let mapSchedulesPics = await schedulesData.map(async schedule => {
                 let schedule_id = await uuidToId(table.tb_r_schedules, 'schedule_id', schedule.schedule_id) //table, col, uuid
                 let q = `SELECT 
@@ -316,7 +316,7 @@ module.exports = {
             for(let i=1;i<=12;i++){
                 let q = `
                 SELECT line_nm, 
-                COUNT(*) AS item_count,
+                COUNT(*) AS item_count,                
                 SUM(duration) AS total_duration
                 FROM v_schedules_monthly vsm
                 WHERE ${containerFilter} AND EXTRACT('month' from plan_check_dt) = ${i}
@@ -342,8 +342,8 @@ module.exports = {
                 cons.forEach(cons => {
                     series[0].data.push(cons.item_count ?? 0);
                     series[1].data.push(Math.round((cons.total_duration ?? 0)/60));
-                    labels.push(cons.line_nm);
-                    // console.log(schedule);
+                    // series[2].data.push(cons.total_item_count ?? 0);
+                    labels.push(cons.line_nm);                    
                 });
 
                 const visualizeData = {
@@ -352,8 +352,7 @@ module.exports = {
                 };
                 dataset[i] = visualizeData
                 
-            }
-            
+            }                        
             response.success(res, "berhasil", dataset)
 
         } catch (error) {
