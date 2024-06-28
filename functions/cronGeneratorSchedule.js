@@ -5,6 +5,7 @@ const {
   queryTransaction,
   queryGetTransaction,
   queryPostTransaction,
+  queryPOSTWhereCond,
 } = require("../helpers/query");
 const table = require("../config/table");
 const getLastIdData = require("../helpers/getLastIdData");
@@ -162,35 +163,40 @@ async function cronGeneratorSchedule() {
 
     // Loop for each period within the next 5 years starting from initial_start_dt
     while (initialStartTime <= endTime) {
-      let offsettime = initialStartTime +
+      let offsettime =
+        initialStartTime +
         timemilisecOffset * +itemcheck.val_periodic * +itemcheck.prec_val;
       const formattedDate = moment(offsettime).format("YYYY-MM-DD");
 
       // Check if the schedule for this date already exists
-      let scheduleData = await queryGET(
+      // let scheduleData = await queryGET(
+      //   table.tb_r_schedules,
+      //   `WHERE plan_check_dt = '${formattedDate}' AND actual_check_dt IS NULL AND ledger_itemcheck_id = '${itemcheck.ledger_itemcheck_id}'`
+      // );
+
+      // const scheduleNotYetCreated = scheduleData.length === 0;
+      // if (scheduleNotYetCreated) {
+      let newSchedule = {
+        schedule_id: `(COALESCE((SELECT MAX(schedule_id) FROM tb_r_schedules), 0) + ${i})`,
+        uuid: v4(),
+        ledger_itemcheck_id: itemcheck.ledger_itemcheck_id,
+        plan_duration: itemcheck.duration,
+        plan_check_dt: formattedDate,
+        status_id: 0,
+        created_by: "GENERATOR",
+      };
+
+      await queryPOSTWhereCond(
         table.tb_r_schedules,
-        `WHERE plan_check_dt = '${formattedDate}' AND actual_check_dt IS NULL AND ledger_itemcheck_id = '${itemcheck.ledger_itemcheck_id}'`
+        newSchedule,
+        `SELECT schedule_id FROM tb_r_schedules WHERE plan_check_dt = '${formattedDate}' AND actual_check_dt IS NULL AND ledger_itemcheck_id = '${itemcheck.ledger_itemcheck_id}'`
       );
-
-      const scheduleNotYetCreated = scheduleData.length === 0;
-      if (scheduleNotYetCreated) {
-        let newSchedule = {
-          schedule_id:
-            (await getLastIdData(table.tb_r_schedules, "schedule_id")) + i,
-          uuid: v4(),
-          ledger_itemcheck_id: itemcheck.ledger_itemcheck_id,
-          plan_duration: itemcheck.duration,
-          plan_check_dt: formattedDate,
-          status_id: 0,
-          created_by: "GENERATOR",
-        };
-
-        const resp = await queryPOST(table.tb_r_schedules, newSchedule);
-        successCreatedCount += 1;
-      }
+      successCreatedCount += 1;
+      // }
 
       // Move to the next period
-      initialStartTime += timemilisecOffset * +itemcheck.val_periodic * +itemcheck.prec_val;
+      initialStartTime +=
+        timemilisecOffset * +itemcheck.val_periodic * +itemcheck.prec_val;
     }
   });
 
@@ -198,8 +204,5 @@ async function cronGeneratorSchedule() {
   if (waitmap) console.log(`DATA INSERTED TOTAL: ${successCreatedCount}`);
 }
 
-
-
 // module.exports = { cronGeneratorSchedule, cronGeneratorDaily };
 module.exports = { cronGeneratorSchedule };
-

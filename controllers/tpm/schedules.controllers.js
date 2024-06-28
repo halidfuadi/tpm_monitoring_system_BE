@@ -5,7 +5,11 @@ const {
   queryGET,
   queryCustom,
   queryBulkPOST,
+  queryTransaction,
+  queryGetTransaction,
+  queryPutTransaction,
 } = require("../../helpers/query");
+const moment = require("moment");
 
 const response = require("../../helpers/response");
 const { groupFunction } = require("../../functions/groupFunction");
@@ -177,20 +181,39 @@ module.exports = {
     //Update table
     //tb_r_schedules plan_check_dt
     try {
-      let { plan_check_dts, schedule_id } = req.body;
-      let scheduleId = await uuidToId(
-        table.tb_r_schedules,
-        "schedule_id",
-        schedule_id
-      );
+      console.log(req.body);
+      const RUNNING_TASK = await queryTransaction(async (db) => {
+        let { plan_check_dts, schedule_id } = req.body;
+        console.log(req.body);
+        // schedule_id = `(SELECT schedule_id FROM ${table.tb_r_schedules} WHERE uuid = '${schedule_id}')`
+        let ledger_itemcheck_id = `(SELECT ledger_itemcheck_id FROM ${table.tb_r_schedules} WHERE uuid = '${schedule_id}')`
 
-      let q = `update tb_r_schedules 
-                set plan_check_dt = '${plan_check_dts}'
-                WHERE schedule_id = ${scheduleId}`;
-      let update = await queryCustom(q);
-      let updateObj = update.rows;
-      console.log(q);
-      response.success(res, "success to edit plan date", q);
+        // substract_reschdule:
+        // SELECT val_periodic, prec_val FROM v_generator_itemchecks where ledger_itemcheck_id = ${ledger_itemcheck_id} (val_periodic * prec_val)
+        const substract_reschdule = await queryGetTransaction(
+          db,
+          table.v_generator_itemchecks,
+          ` WHERE ledger_itemcheck_id = ${ledger_itemcheck_id}`
+        );
+        console.log(substract_reschdule);
+        const last_check_dt = {
+          last_check_dt: moment(plan_check_dts).subtract(substract_reschdule[0].val_periodic * substract_reschdule[0].prec_val, 'days').format("YYYY-MM-DD")
+        }
+        console.log(last_check_dt);
+
+        // // UPDATE tb_r_ledger_itemchecks set last_check_dt = '${moment().subtract(substract_reschdule, 'days').format("YYYY-MM-DD")}' where ledger_itemcheck_id = ${ledger_itemcheck_id} // substract with periodic
+
+        // lastcheck_editted
+        await queryPutTransaction(db, table.tb_r_ledger_itemchecks, last_check_dt, ` WHERE ledger_itemcheck_id = ${ledger_itemcheck_id}`);
+        // reschedule_changes
+        let changes_plan_check_dt = {
+          plan_check_dt: plan_check_dts
+        }
+
+        await queryPutTransaction(db, table.tb_r_schedules, changes_plan_check_dt, ` WHERE schedule_id = (SELECT schedule_id FROM ${table.tb_r_schedules} WHERE uuid = '${schedule_id}')`);
+        return 'Success to edit plan date'
+      })
+      response.success(res, "success to edit plan date", RUNNING_TASK);
     } catch (error) {
       console.log(error);
       response.failed(res, "Error to edit plan date");

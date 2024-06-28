@@ -27,7 +27,53 @@ module.exports = {
         });
     });
   },
-  queryPOST: async (table, data) => {
+  queryPOSTWhereCond: async (table, data, whereCond = "") => {
+    return new Promise(async (resolve, reject) => {
+      let containerColumn = [];
+      let containerValues = [];
+      for (const key in data) {
+        containerColumn.push(key);
+        console.log(data[key]);
+        if (typeof data[key] == "string" && data[key].includes("SELECT")) {
+          containerValues.push(data[key]);
+        } else {
+          containerValues.push(`'${data[key]}'`);
+        }
+      }
+      // INSERT INTO tb_r_schedules (schedule_id, uuid, ledger_itemcheck_id, plan_duration, plan_check_dt, status_id, created_by)
+      // SELECT
+      //     COALESCE((SELECT MAX(schedule_id) FROM tb_r_schedules), 0) + 2030,
+      //     '0e9c814d-2bcc-469b-b532-b49f68cb4dab',
+      //     '1251',
+      //     '20',
+      //     '2024-07-06',
+      //     '0',
+      //     'GENERATOR'
+      // WHERE NOT EXISTS (
+      //     SELECT 1
+      //     FROM tb_r_schedules
+      //     WHERE plan_check_dt = '2024-07-06'
+      //       AND actual_check_dt IS NULL
+      //       AND ledger_itemcheck_id = '1251'
+      // );
+      let q = `INSERT INTO ${table}(${containerColumn.join(",")}) 
+      SELECT
+          ${containerValues.join(",")}
+      WHERE NOT EXISTS (
+          ${whereCond}
+      );`;
+      console.log(q);
+      await database
+        .query(q)
+        .then((result) => {
+          resolve(result);
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+  },
+  queryPOST: async (table, data, whereCond = "") => {
     console.log(data);
     return new Promise(async (resolve, reject) => {
       let containerColumn = [];
@@ -55,7 +101,7 @@ module.exports = {
 
       let q = `INSERT INTO ${table}(${containerColumn.join(
         ","
-      )}) VALUES (${containerValues.join(",")}) RETURNING *`;
+      )}) VALUES (${containerValues.join(",")}) ${whereCond} RETURNING *`;
       console.log(q);
       await database
         .query(q)
@@ -226,7 +272,7 @@ module.exports = {
         whereCond = "";
       }
       let q = `SELECT row_number() over()::INTEGER as no, ${selectedCols} FROM ${table} ${whereCond}`;
-      // console.log(q);
+      console.log(q);
       await db
         .query(q)
         .then((result) => {
