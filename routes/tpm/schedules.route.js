@@ -10,6 +10,7 @@ router.post('/visualization-item', schedulesControllers.getVisualizeLine)
 router.post('/add/pic', schedulesControllers.addPlanPic)
 router.post('/edit/plandate', schedulesControllers.editPlanDate)
 router.post('/visualization-item-yearly', schedulesControllers.getVusualizeYearly)
+router.get('/getDelayed', schedulesControllers.getDelayedItem)
 
 
 module.exports = router

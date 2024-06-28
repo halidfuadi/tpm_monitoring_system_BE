@@ -18,13 +18,13 @@ const cronCheckDelayStatus = require("./functions/cronCheckDelayStatus");
 
 async function init_start() {
   console.log("Running cronGeneratorSchedule()....");
-  await cronGeneratorSchedule();
+  // await cronGeneratorSchedule();
   console.log("Finished cronGeneratorSchedule()....");
   console.log("Running cronGeneratorDaily()....");
   // await cronGeneratorDaily();
   console.log("Finished cronGeneratorDaily()....");
   console.log("Running cronCheckDelayStatus()....");
-  await cronCheckDelayStatus();
+  // await cronCheckDelayStatus();
   console.log("Finished cronCheckDelayStatus()....");
 }
 
