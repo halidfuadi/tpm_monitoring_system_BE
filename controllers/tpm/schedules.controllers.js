@@ -22,6 +22,34 @@ async function uuidToId(table, col, uuid) {
   return rawId[0][col];
 }
 
+function getPreviousMonthRange() {
+  let now = new Date();
+  let firstDayOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  let firstDayOfPreviousMonth = new Date(
+    firstDayOfCurrentMonth.setMonth(firstDayOfCurrentMonth.getMonth() - 1)
+  );
+  let lastDayOfPreviousMonth = new Date(
+    firstDayOfPreviousMonth.getFullYear(),
+    firstDayOfPreviousMonth.getMonth() + 1,
+    0
+  );
+
+  // Format the dates as 'YYYY-MM-DD'
+  let formatDate = (date) => {
+    let year = date.getFullYear();
+    let month = date.getMonth() + 1;
+    let day = date.getDate();
+    if (month < 10) month = "0" + month;
+    if (day < 10) day = "0" + day;
+    return `${year}-${month}-${day}`;
+  };
+
+  return {
+    firstDay: formatDate(firstDayOfPreviousMonth),
+    lastDay: formatDate(lastDayOfPreviousMonth),
+  };
+}
+
 module.exports = {
   getSchedule: async (req, res) => {
     try {
@@ -196,6 +224,43 @@ module.exports = {
       response.failed(res, "Error to edit plan date");
     }
   },
+
+  getDelayedItem: async (rea, res) => {
+    try {
+      // Get the previous month date range
+      let previousMonthRange = getPreviousMonthRange();
+    
+      // Fetch delayed data
+      let delayedData = await queryGET(
+        table.v_schedules_monthly,
+        `WHERE status_nm = 'DELAY' AND val_periodic != 1 AND period_nm != 'Month' AND plan_check_dt >= '${previousMonthRange.firstDay}' AND plan_check_dt <= '${previousMonthRange.lastDay}'`
+      );
+    
+      let groupedData = delayedData.reduce((acc, item) => {
+        if (!acc[item.line_nm]) {
+          acc[item.line_nm] = { items: [], count: 0 };
+        }
+        acc[item.line_nm].items.push(item);
+        acc[item.line_nm].count++;
+        return acc;
+      }, {});
+    
+      let result = Object.keys(groupedData).map((key) => ({
+        line_nm: key,
+        items: groupedData[key].items,
+        count: groupedData[key].count,
+      }));
+    
+      // Output the result
+      console.log(result);
+      response.success(res, "berhasil", result);
+    } catch (error) {
+      console.log(error);
+    }
+    
+    
+  },
+
   getVisualize: async (req, res) => {
     try {
       let containerFilter = queryHandler(req.body);

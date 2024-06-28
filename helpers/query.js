@@ -16,7 +16,7 @@ module.exports = {
         whereCond = "";
       }
       let q = `SELECT row_number() over()::INTEGER as no, ${selectedCols} FROM ${table} ${whereCond}`;
-      console.log(q);
+      // console.log(q);
       await database
         .query(q)
         .then((result) => {
